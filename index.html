@@ -155,12 +155,73 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
   .fit-tbl th{background:#f5f5f5}
   .fit-card{page-break-inside:avoid}
 }
-@media(max-width:680px){
-  .hdr,.tabs,.toolbar,.summary,.footer{padding-left:16px;padding-right:16px}
-  .fit-list{padding-left:16px;padding-right:16px}
-  .tbl-wrap{margin-left:16px;margin-right:16px}
-  .hdr{flex-wrap:wrap}
-  .tabs{top:80px}
+@media(max-width:768px){
+  /* Header */
+  .hdr{flex-wrap:wrap;padding:14px 16px;gap:12px;position:sticky;top:0}
+  .hdr-logo{height:38px}
+  .hdr-title{font-size:17px}
+  .hdr-sub{font-size:11px}
+  .hdr-badges{margin-top:6px}
+  .hdr-right{width:100%;order:3}
+  .btn-print{width:100%;justify-content:center;padding:10px}
+  /* Tabs */
+  .tabs{top:auto;position:relative;padding:0 4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{padding:10px 14px;font-size:12px;white-space:nowrap;gap:5px}
+  /* Toolbar */
+  .toolbar{padding:10px 16px;gap:7px;flex-wrap:wrap}
+  .toolbar2{padding:10px 16px;gap:7px}
+  .search-wrap{flex:1 1 100%;max-width:100%;min-width:0}
+  .btn-clear{flex-shrink:0}
+  .filt-grp{width:100%;gap:4px}
+  .filt-btn{flex:1;text-align:center;padding:7px 6px;font-size:11px}
+  .make-sel{flex:1;min-width:0}
+  /* Summary */
+  .summary{padding:8px 16px;gap:0;flex-wrap:wrap}
+  .sum-item{padding:4px 10px;margin-right:6px;margin-bottom:4px}
+  /* Price table: hide less critical columns, allow horizontal scroll on what remains */
+  .tbl-wrap{margin:12px 16px;border-radius:8px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  #panel-price table{min-width:0}
+  /* Hide: Savings(5), Canada(7), Intl(8), Notes(10) */
+  #panel-price table th:nth-child(5),
+  #panel-price table td:nth-child(5),
+  #panel-price table th:nth-child(7),
+  #panel-price table td:nth-child(7),
+  #panel-price table th:nth-child(8),
+  #panel-price table td:nth-child(8),
+  #panel-price table th:nth-child(10),
+  #panel-price table td:nth-child(10){display:none}
+  /* SKU column tighter on mobile */
+  .pn-link,.pn-plain{font-size:10px}
+  td{padding:8px 8px;font-size:12px}
+  th{padding:8px 8px;font-size:9px}
+  /* Fitment list */
+  .fit-list{padding:12px 16px 32px}
+  /* Fitment card header stacks vertically on mobile */
+  .fit-card-hdr{flex-direction:column;gap:12px;position:static!important;box-shadow:none!important}
+  .fit-card-right{text-align:left;display:flex;align-items:center;gap:16px;border-top:1px solid var(--border);padding-top:10px;width:100%}
+  .fit-price-label{font-size:9px;white-space:nowrap;margin-bottom:0}
+  .fit-price-net{font-size:22px}
+  .fit-price-msrp{margin-top:0;font-size:11px}
+  /* Fitment sub-table scrolls */
+  .fit-card-body{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .fit-tbl{min-width:340px}
+  .fit-tbl th,.fit-tbl td{padding:7px 12px;font-size:12px}
+  /* Fitment card apps row */
+  .fit-card-apps{flex-wrap:wrap;gap:5px}
+  .fit-card-desc{font-size:13px}
+  /* Footer */
+  .footer{padding:14px 16px;flex-direction:column;align-items:flex-start;gap:8px}
+  .footer-brand{text-align:left}
+  /* Back to top */
+  #btt{bottom:16px;right:16px;width:38px;height:38px;font-size:16px}
+  /* Print button hidden on print but visible on mobile */
+}
+@media(max-width:480px){
+  .hdr-title{font-size:15px}
+  .badge{font-size:10px;padding:3px 9px}
+  /* On very small screens also hide Description col truncation and US Ship */
+  .desc-text{font-size:12px}
 }
 </style>
 </head>
