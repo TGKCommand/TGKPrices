@@ -110,9 +110,9 @@ table.fit-tbl{width:100%;border-collapse:collapse}
 .hdr::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--orange))}
 .tabs{position:sticky;top:91px;z-index:99;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.04)}
 /* Sticky fitment card header */
-.fit-card{border-radius:10px;border:1px solid var(--border);margin-bottom:20px;padding:0;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)}
-.fit-card-hdr{position:sticky;top:140px;z-index:10;background:#fff;padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:20px;transition:box-shadow .15s}
-.fit-card-hdr.stuck{box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.fit-card{border-radius:10px;border:1px solid var(--border);margin-bottom:20px;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.fit-card-hdr{background:#fff;padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:20px;border-radius:10px 10px 0 0}
+
 .fit-card-body{padding:0 0 0 0}
 .fit-tbl{width:100%;border-collapse:collapse}
 .fit-tbl th{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600;padding:8px 20px;border-bottom:1.5px solid var(--border);background:#fafbfc;position:static;text-align:left}
@@ -198,7 +198,7 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
   /* Fitment list */
   .fit-list{padding:12px 16px 32px}
   /* Fitment card header stacks vertically on mobile */
-  .fit-card-hdr{flex-direction:column;gap:12px;position:static!important;box-shadow:none!important}
+  .fit-card-hdr{flex-direction:column;gap:12px}
   .fit-card-right{text-align:left;display:flex;align-items:center;gap:16px;border-top:1px solid var(--border);padding-top:10px;width:100%}
   .fit-price-label{font-size:9px;white-space:nowrap;margin-bottom:0}
   .fit-price-net{font-size:22px}
@@ -618,11 +618,7 @@ init();
 window.addEventListener('scroll',function(){
   var btt=document.getElementById('btt');
   if(window.scrollY>400){btt.classList.add('show');}else{btt.classList.remove('show');}
-  // Sticky card header shadow
-  document.querySelectorAll('.fit-card-hdr').forEach(function(hdr){
-    var rect=hdr.getBoundingClientRect();
-    if(rect.top<=145){hdr.classList.add('stuck');}else{hdr.classList.remove('stuck');}
-  });
+
 },{passive:true});
 </script>
 </body>
