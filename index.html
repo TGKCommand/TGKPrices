@@ -105,19 +105,62 @@ table.fit-tbl{width:100%;border-collapse:collapse}
 .footer{padding:16px 36px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:16px}
 .footer-note{font-size:11px;color:var(--text3);max-width:600px;line-height:1.65}
 .footer-brand{font-size:11px;color:var(--text3);font-weight:600;text-align:right}
+/* Sticky nav */
+.hdr{position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.hdr::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--orange))}
+.tabs{position:sticky;top:91px;z-index:99;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+/* Sticky fitment card header */
+.fit-card{border-radius:10px;border:1px solid var(--border);margin-bottom:20px;padding:0;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.fit-card-hdr{position:sticky;top:140px;z-index:10;background:#fff;padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:20px;transition:box-shadow .15s}
+.fit-card-hdr.stuck{box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.fit-card-body{padding:0 0 0 0}
+.fit-tbl{width:100%;border-collapse:collapse}
+.fit-tbl th{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600;padding:8px 20px;border-bottom:1.5px solid var(--border);background:#fafbfc;position:static;text-align:left}
+.fit-tbl td{padding:9px 20px;font-size:13px;border-bottom:1px solid #f0f2f5}
+.fit-tbl tr:nth-child(even) td{background:#fafbfc}
+.fit-tbl tr:last-child td{border-bottom:none}
+.fit-make{font-weight:600;color:var(--text);font-size:13px}
+.fit-model{color:var(--text2);font-size:13px}
+.fit-yr{color:var(--text3);font-size:12px;font-family:'JetBrains Mono',monospace}
+/* Visual polish */
+.hdr-logo{filter:none}
+.fit-price-net{font-size:28px}
+.fit-card-apps{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fit-app-count{display:inline-block;font-size:10px;font-weight:600;background:rgba(42,191,170,.1);color:var(--teal);border-radius:4px;padding:1px 7px}
+.fit-makes-list{font-size:12px;color:var(--text3)}
+.fit-list{padding:20px 36px 36px;background:#f4f6f9}
+/* Price table polish */
+table{border-radius:10px;overflow:hidden}
+.tbl-wrap{border:1px solid var(--border);border-radius:10px;margin:16px 36px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+th{border-bottom:2px solid var(--border);background:#fafbfc}
+/* Category rows */
+.cat-row td{background:linear-gradient(90deg,rgba(42,191,170,.08),rgba(42,191,170,.03));font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);padding:8px 14px;border-top:2px solid rgba(42,191,170,.2);border-bottom:1px solid rgba(42,191,170,.12)}
+/* Summary pills */
+.summary{background:#fff;border:none;border-bottom:1px solid var(--border);padding:10px 36px;gap:0}
+.sum-item{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 14px;margin-right:8px}
+/* Back to top */
+#btt{position:fixed;bottom:28px;right:28px;width:42px;height:42px;border-radius:50%;background:var(--teal);color:#fff;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(42,191,170,.4);z-index:200;transition:all .2s;font-size:18px}
+#btt:hover{background:#22a899;transform:translateY(-2px);box-shadow:0 6px 20px rgba(42,191,170,.5)}
+#btt.show{display:flex}
 /* Print */
 @media print{
-  .toolbar,.tabs,.btn-print,.hdr-right,.filt-grp{display:none!important}
-  .fit-list{padding:0 0 16px}
+  .toolbar,.tabs,.btn-print,.hdr-right,.filt-grp,#btt{display:none!important}
+  .hdr{position:static;padding:10px 0;border-bottom:1.5px solid #ccc;box-shadow:none}
+  .hdr::before{display:none}
+  .tbl-wrap{margin:0;border:none;box-shadow:none;border-radius:0}
+  table{border-radius:0}
+  .fit-list{padding:0;background:#fff}
+  .fit-card{border-radius:0;box-shadow:none;border:none;border-bottom:1px solid #ddd;margin-bottom:16px}
+  .fit-card-hdr{position:static;box-shadow:none;padding:12px 0}
+  .fit-tbl th{background:#f5f5f5}
   .fit-card{page-break-inside:avoid}
-  th{position:static!important}
-  .hdr{padding:10px 0;border-bottom:1.5px solid #ccc}
-  .tbl-wrap{overflow:visible}
-  table{min-width:0}
 }
 @media(max-width:680px){
-  .hdr,.tabs,.toolbar,.fit-list,.summary,.footer{padding-left:16px;padding-right:16px}
+  .hdr,.tabs,.toolbar,.summary,.footer{padding-left:16px;padding-right:16px}
+  .fit-list{padding-left:16px;padding-right:16px}
+  .tbl-wrap{margin-left:16px;margin-right:16px}
   .hdr{flex-wrap:wrap}
+  .tabs{top:80px}
 }
 </style>
 </head>
@@ -216,6 +259,8 @@ table.fit-tbl{width:100%;border-collapse:collapse}
       </button>
     </div>
     <div class="fit-list" id="fit-list"></div>
+
+  <button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">&#8679;</button>
   </div>
 
   <div class="footer">
@@ -366,18 +411,23 @@ function filterFit(){
           ?f.year_from+'–'+f.year_to+(f.submodel?' ('+f.submodel+')':'')
           :f.year_from?(String(f.year_from)+(f.submodel?' ('+f.submodel+')':'')):'--';
         fitRows+='<tr>'
-          +'<td class="fit-make" style="'+(i===0?'':'border-top:none;padding-top:2px;color:transparent')+'">'+esc(mk)+'</td>'
+          +'<td class="fit-make">'+esc(mk)+'</td>'
           +'<td class="fit-model">'+esc(f.model||'--')+'</td>'
           +'<td class="fit-yr">'+esc(yr)+'</td>'
           +'</tr>';
       });
     });
+    const {cls:stCls,txt:stTxt}=stockOf(a);
     html+='<div class="fit-card">'
       +'<div class="fit-card-hdr">'
         +'<div class="fit-card-left">'
           +'<div class="fit-card-pn">'+pnEl+'</div>'
           +'<div class="fit-card-desc">'+esc(a.description||'')+'</div>'
-          +'<div class="fit-card-apps">'+fits.length+' application'+(fits.length!==1?'s':'')+(makes.length?' &middot; '+makes.map(m=>esc(m)).join(', '):'')+'</div>'
+          +'<div class="fit-card-apps">'
+            +'<span class="fit-app-count">'+fits.length+' application'+(fits.length!==1?'s':'')+'</span>'
+            +(makes.length?'<span class="fit-makes-list">'+makes.map(m=>esc(m)).join(', ')+'</span>':'')
+            +'<span class="stock-badge '+stCls+'" style="font-size:9px;padding:2px 7px">'+stTxt+'</span>'
+          +'</div>'
         +'</div>'
         +'<div class="fit-card-right">'
           +'<div class="fit-price-label">Your Price</div>'
@@ -385,8 +435,10 @@ function filterFit(){
           +'<div class="fit-price-msrp">MSRP '+fc(msrp)+'</div>'
         +'</div>'
       +'</div>'
+      +'<div class="fit-card-body">'
       +'<table class="fit-tbl"><thead><tr><th>Make</th><th>Model</th><th>Year(s)</th></tr></thead>'
       +'<tbody>'+fitRows+'</tbody></table>'
+      +'</div>'
       +'</div>';
   });
   document.getElementById('fit-list').innerHTML=html||'<div style="text-align:center;padding:60px;color:var(--text3)">No fitments found.</div>';
@@ -454,6 +506,17 @@ async function init(){
   }catch(e){showError('Failed to load','Please refresh. ('+e.message+')');}
 }
 init();
+
+// Back to top button
+window.addEventListener('scroll',function(){
+  var btt=document.getElementById('btt');
+  if(window.scrollY>400){btt.classList.add('show');}else{btt.classList.remove('show');}
+  // Sticky card header shadow
+  document.querySelectorAll('.fit-card-hdr').forEach(function(hdr){
+    var rect=hdr.getBoundingClientRect();
+    if(rect.top<=145){hdr.classList.add('stuck');}else{hdr.classList.remove('stuck');}
+  });
+},{passive:true});
 </script>
 </body>
 </html>
