@@ -348,12 +348,10 @@ const SUPPLY_CATS=['Shipping','Bulk Pieces'];
 const ALL_EXCL=[...HW_CATS,...SUPPLY_CATS];
 function isHWPack(pn){return /^TGK-P\d/i.test(pn||'');}
 function isVisible(a){
-  if(a.is_subassembly)return false;
+  if(a.category!=='Finished Goods')return false;
   if(a.discontinued)return false;
-  if(a.stage==='dev')return false;
+  if(a.stage==='dev'||a.stage==='discontinued')return false;
   if(a.status==='Inactive')return false;
-  if(isHWPack(a.pn))return false;
-  if(ALL_EXCL.includes(a.category))return false;
   if(a.pl_active===false)return false;
   if(!(a.msrp>0))return false;
   return true;
