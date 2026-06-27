@@ -380,6 +380,16 @@ async function logVisit(dealer){
   }catch(e){console.warn('[TGK] visit log failed:',e);}
 }
 
+// Safe price helpers for prospect mode (G.dealer may be null)
+function safeDealer(){
+  if(G.dealer)return G.dealer;
+  // In prospect mode use lowest tier for fitment price display
+  if(G.tiers&&G.tiers.length){
+    const t=G.tiers.reduce((a,b)=>b.pct>a.pct?b:a,G.tiers[0]);
+    return{discount_pct:t.pct/100,discount_flat:0};
+  }
+  return{discount_pct:0.2,discount_flat:0};
+}
 function discLabel(d){
   if(d.discount_pct>0)return Math.round(d.discount_pct*100)+'% off MSRP';
   if(d.discount_flat>0)return fc(d.discount_flat)+' flat off';
@@ -471,7 +481,7 @@ function setPF(f,btn){
 
 function renderPrice(){
   const q=(document.getElementById('q-price').value||'').toLowerCase().trim();
-  const d=G.dealer;
+  const d=safeDealer();
   const items=G.asms.filter(isVisible).sort((a,b)=>{const ca=a.category||'',cb=b.category||'';return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));});
   let total=0,inC=0,boC=0,btC=0,lastCat='',html='';
   items.forEach(a=>{
@@ -514,7 +524,7 @@ function renderPrice(){
 function filterFit(){
   const q=(document.getElementById('q-fit').value||'').toLowerCase().trim();
   const make=(document.getElementById('make-sel').value||'').toLowerCase();
-  const d=G.dealer;
+  const d=safeDealer();
   const fitMap={};G.fits.forEach(f=>{if(!fitMap[f.pn])fitMap[f.pn]=[];fitMap[f.pn].push(f);});
   const items=G.asms.filter(isVisible).sort((a,b)=>pnOf(a).localeCompare(pnOf(b)));
   let count=0,html='';
@@ -577,7 +587,7 @@ function filterFit(){
 
 // ── Export ───────────────────────────────────────────────────────────────────
 function doExport(tab,fmt){
-  const d=G.dealer;let rows,name;
+  const d=safeDealer();let rows,name;
   if(tab==='price'){
     rows=[['SKU','Description','MSRP','Your Price','Savings','US Ship','Canada','Intl','Stock','Notes']];
     G.asms.filter(isVisible).sort((a,b)=>{const ca=a.category||'',cb=b.category||'';return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));}).forEach(a=>{
@@ -653,7 +663,7 @@ async function init(){
     boms.forEach(b=>{if(!G.boms[b.parent_pn])G.boms[b.parent_pn]=[];G.boms[b.parent_pn].push(b);});
     G.parts=parts;G.fits=fits;
     logVisit(G.dealer); // non-blocking
-    const d=G.dealer;
+    const d=safeDealer();
     const visiblePns=new Set(G.asms.filter(isVisible).map(a=>a.pn));
     const visFits=fits.filter(f=>visiblePns.has(f.pn));
     document.getElementById('fit-count').textContent=visFits.length;
