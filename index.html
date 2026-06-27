@@ -3,388 +3,422 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TGK Motorsport Dealer Price List</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>TGK Motorsport – Dealer Price List</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --teal:#2ABFAA;
-    --orange:#E07B28;
-    --dark:#141618;
-    --dark2:#1e2124;
-    --border:#e2e6ea;
-    --text:#1a1d21;
-    --text2:#4a5568;
-    --text3:#8a9ab0;
-    --bg:#f7f9fc;
-    --green:#16a34a;
-    --red:#dc2626;
-    --amber:#d97706;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-  /* Header */
-  .header{background:var(--dark);color:#fff;padding:0}
-  .header-inner{max-width:1100px;margin:0 auto;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-  .logo{display:flex;align-items:center;gap:12px}
-  .logo-mark{width:40px;height:40px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;letter-spacing:-.5px;font-family:'DM Mono',monospace}
-  .logo-text{font-size:15px;font-weight:700;letter-spacing:.02em;line-height:1.2}
-  .logo-sub{font-size:10px;color:rgba(255,255,255,.4);font-weight:400;letter-spacing:.08em;text-transform:uppercase;margin-top:1px}
-  .header-meta{text-align:right}
-  .header-dealer{font-size:18px;font-weight:700;color:#fff}
-  .header-tier{font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-top:2px}
-  .header-date{font-size:10px;color:rgba(255,255,255,.3);margin-top:4px}
-  /* Dealer strip */
-  .dealer-strip{background:var(--dark2);border-bottom:2px solid var(--teal);padding:0}
-  .dealer-strip-inner{max-width:1100px;margin:0 auto;padding:12px 32px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
-  .strip-item{font-size:11px;color:rgba(255,255,255,.5)}
-  .strip-item span{color:rgba(255,255,255,.9);font-weight:600;margin-left:4px}
-  /* Content */
-  .content{max-width:1100px;margin:0 auto;padding:28px 32px}
-  /* Category section */
-  .category{margin-bottom:32px}
-  .category-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--border)}
-  .category-name{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2)}
-  .category-count{font-size:10px;color:var(--text3);background:var(--border);border-radius:10px;padding:1px 8px}
-  /* Table */
-  table{width:100%;border-collapse:collapse}
-  thead th{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:600;padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
-  thead th.right{text-align:right}
-  tbody tr{border-bottom:1px solid #eef1f5;transition:background .1s}
-  tbody tr:hover{background:#f0f7f6}
-  tbody td{padding:8px 10px;font-size:12px;vertical-align:middle}
-  .pn{font-family:'DM Mono',monospace;font-size:11px;color:var(--teal);font-weight:500;white-space:nowrap}
-  .desc{color:var(--text);font-size:12px;max-width:320px}
-  .desc-sub{font-size:10px;color:var(--text3);margin-top:1px}
-  .price{font-family:'DM Mono',monospace;font-size:12px;text-align:right;white-space:nowrap}
-  .price-msrp{color:var(--text3);text-decoration:line-through;font-size:10px}
-  .price-dealer{color:var(--text);font-weight:700;font-size:13px}
-  .price-savings{font-size:9px;color:var(--green);margin-top:1px}
-  .badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:4px;white-space:nowrap}
-  .badge-instock{background:rgba(22,163,74,.1);color:var(--green)}
-  .badge-backorder{background:rgba(217,119,6,.1);color:var(--amber)}
-  .badge-build{background:rgba(42,191,170,.1);color:var(--teal)}
-  .badge-low{background:rgba(220,38,38,.08);color:var(--red)}
-  .eta{font-size:9px;color:var(--text3);margin-top:2px}
-  /* Toolbar */
-  .toolbar{max-width:1100px;margin:0 auto;padding:16px 32px 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-  .search{flex:1;min-width:200px;max-width:320px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;background:#fff;color:var(--text);outline:none}
-  .search:focus{border-color:var(--teal)}
-  .btn-print{padding:8px 18px;background:var(--teal);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.02em}
-  .btn-print:hover{background:#22a090}
-  .filter-group{display:flex;gap:6px}
-  .filter-btn{padding:5px 12px;border:1px solid var(--border);border-radius:5px;font-size:11px;cursor:pointer;background:#fff;color:var(--text2);font-family:inherit}
-  .filter-btn.active{background:var(--teal);color:#fff;border-color:var(--teal)}
-  /* Summary bar */
-  .summary{max-width:1100px;margin:0 auto;padding:10px 32px;display:flex;gap:20px;flex-wrap:wrap}
-  .summary-item{font-size:10px;color:var(--text3)}
-  .summary-item b{color:var(--text);font-size:12px;margin-right:4px}
-  /* States */
-  .state{max-width:1100px;margin:60px auto;padding:0 32px;text-align:center}
-  .state-icon{font-size:40px;margin-bottom:12px}
-  .state-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px}
-  .state-sub{font-size:13px;color:var(--text3)}
-  .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  /* Footer */
-  .footer{max-width:1100px;margin:24px auto 0;padding:16px 32px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
-  .footer-note{font-size:10px;color:var(--text3)}
-  .footer-brand{font-size:10px;color:var(--text3);font-weight:600}
-  /* Print */
-  @media print {
-    .toolbar,.btn-print,.filter-group,.search{display:none!important}
-    .header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .dealer-strip{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .badge{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    body{background:#fff}
-    .category{page-break-inside:avoid}
-    table{page-break-inside:auto}
-    tr{page-break-inside:avoid}
-  }
-  @media(max-width:700px){
-    .header-inner,.dealer-strip-inner,.toolbar,.content,.summary,.footer{padding-left:16px;padding-right:16px}
-    .header-dealer{font-size:14px}
-    .desc{max-width:160px}
-  }
+:root{--teal:#2ABFAA;--orange:#E07B28;--dark:#141618;--dark2:#1e2124;--border:#e2e6ea;--text:#111;--text2:#444;--text3:#888;--bg:#f8f9fb;--green:#16a34a;--red:#dc2626;--amber:#d97706;--blue:#2563eb}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#fff;color:var(--text);min-height:100vh;font-size:13px}
+/* ── Header ── */
+.hdr{background:#fff;border-bottom:2px solid var(--border);padding:16px 32px;display:flex;align-items:flex-start;gap:24px}
+.hdr-logo{height:52px;width:auto;object-fit:contain;flex-shrink:0}
+.hdr-body{flex:1}
+.hdr-title{font-size:20px;font-weight:800;color:var(--text);letter-spacing:-.02em;line-height:1.1}
+.hdr-sub{font-size:12px;color:var(--text3);margin-top:3px}
+.hdr-badges{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.04em;padding:3px 10px;border-radius:20px;border:1.5px solid}
+.badge-teal{color:var(--teal);border-color:var(--teal)}
+.badge-red{color:var(--red);border-color:var(--red)}
+.hdr-right{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.btn-print{padding:8px 18px;background:var(--teal);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px}
+.btn-print:hover{background:#229e8e}
+/* ── Tabs ── */
+.tabs{border-bottom:2px solid var(--border);padding:0 32px;display:flex;gap:0}
+.tab{padding:11px 20px;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;display:flex;align-items:center;gap:6px;transition:color .15s}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+.tab:hover:not(.active){color:var(--text)}
+.tab-count{font-size:10px;font-weight:700;background:var(--border);color:var(--text3);border-radius:10px;padding:1px 7px}
+.tab.active .tab-count{background:rgba(42,191,170,.15);color:var(--teal)}
+/* ── Toolbar ── */
+.toolbar{padding:14px 32px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--bg)}
+.search-wrap{position:relative;flex:1;min-width:200px;max-width:380px}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.search{width:100%;padding:8px 10px 8px 32px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;background:#fff;color:var(--text);outline:none}
+.search:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(42,191,170,.1)}
+.btn{padding:7px 14px;border:1px solid var(--border);border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;background:#fff;color:var(--text2);display:inline-flex;align-items:center;gap:5px;transition:all .1s}
+.btn:hover{background:var(--bg);border-color:#ccc}
+.btn-clear{color:var(--text3)}
+.filter-group{display:flex;gap:4px;margin-left:auto}
+.filter-btn{padding:6px 13px;border:1px solid var(--border);border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:var(--text2);font-family:inherit}
+.filter-btn.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+/* ── Table ── */
+.tbl-wrap{overflow-x:auto;flex:1}
+table{width:100%;border-collapse:collapse;min-width:800px}
+th{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;padding:8px 10px;text-align:left;border-bottom:2px solid var(--border);white-space:nowrap;background:#fff;position:sticky;top:0;z-index:2}
+th.r{text-align:right}
+td{padding:8px 10px;font-size:12px;border-bottom:1px solid #f0f2f5;vertical-align:top}
+tr:hover td{background:#f5fffe}
+.cat-row td{background:rgba(42,191,170,.06);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);padding:5px 10px;border-top:2px solid rgba(42,191,170,.2);border-bottom:1px solid rgba(42,191,170,.15)}
+.pn-link{font-family:'DM Mono',monospace;font-size:11px;color:var(--teal);font-weight:600;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
+.pn-link:hover{text-decoration:underline}
+.pn-plain{font-family:'DM Mono',monospace;font-size:11px;color:var(--teal);font-weight:600}
+.desc-wrap{max-width:280px}
+.desc-main{color:var(--text);font-size:12px;line-height:1.4}
+.desc-note{font-size:10px;color:var(--text3);margin-top:1px}
+.money{font-family:'DM Mono',monospace;font-size:12px;text-align:right;white-space:nowrap}
+.money-net{font-weight:700;color:var(--text)}
+.money-msrp{color:var(--text3);text-decoration:line-through}
+.money-save{font-size:10px;color:var(--green);font-weight:600}
+.money-ship{color:var(--text2)}
+.money-free{color:var(--green);font-weight:600}
+.badge-in{background:rgba(22,163,74,.1);color:var(--green);border-color:rgba(22,163,74,.3)}
+.badge-low{background:rgba(220,38,38,.08);color:var(--red);border-color:rgba(220,38,38,.25)}
+.badge-build{background:rgba(42,191,170,.1);color:var(--teal);border-color:rgba(42,191,170,.3)}
+.badge-back{background:rgba(217,119,6,.1);color:var(--amber);border-color:rgba(217,119,6,.3)}
+.stock-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid;white-space:nowrap}
+/* ── Fitment tab ── */
+.fit-table table{min-width:600px}
+.fit-make{font-size:11px;font-weight:700;color:var(--text)}
+.fit-model{font-size:11px;color:var(--text2)}
+.fit-years{font-size:11px;font-family:'DM Mono',monospace;color:var(--text3)}
+.fit-sub{font-size:10px;color:var(--text3)}
+/* ── States ── */
+.page{padding:0 32px 32px}
+.state{text-align:center;padding:80px 32px}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.state-title{font-size:18px;font-weight:700;margin-bottom:6px}
+.state-sub{font-size:13px;color:var(--text3)}
+/* ── Summary bar ── */
+.summary{padding:8px 32px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;gap:20px;flex-wrap:wrap}
+.sum-item{font-size:10px;color:var(--text3)}
+.sum-item b{font-size:12px;color:var(--text);margin-right:4px}
+/* ── Footer ── */
+.footer{padding:14px 32px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-top:auto}
+.footer-note{font-size:9px;color:var(--text3);max-width:600px;line-height:1.6}
+.footer-brand{font-size:9px;color:var(--text3);font-weight:600;text-align:right}
+/* ── Print ── */
+@media print{
+  .toolbar,.tabs .filter-group,.btn-print{display:none!important}
+  th{position:static}
+  .cat-row td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media(max-width:700px){
+  .hdr,.tabs,.toolbar,.page,.summary,.footer{padding-left:16px;padding-right:16px}
+  .hdr{flex-wrap:wrap}
+  .hdr-right{flex-direction:row;width:100%}
+}
 </style>
 </head>
 <body>
 
-<div id="loading" class="state">
-  <div class="spinner"></div>
-  <div class="state-title">Loading your price list...</div>
-  <div class="state-sub">Fetching latest pricing from TGK Motorsport</div>
-</div>
+<div id="loading" class="state"><div class="spinner"></div><div class="state-title">Loading&hellip;</div><div class="state-sub">Fetching your price list from TGK Motorsport</div></div>
+<div id="error" class="state" style="display:none"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div class="state-title" id="err-title">Link not recognised</div><div class="state-sub" id="err-sub">Contact <a href="mailto:info@tgkmotorsport.com" style="color:var(--teal)">info@tgkmotorsport.com</a> for your dealer price list link.</div></div>
 
-<div id="error" class="state" style="display:none">
-  <div class="state-icon">&#x26A0;</div>
-  <div class="state-title" id="error-title">Link not recognised</div>
-  <div class="state-sub" id="error-sub">Please contact TGK Motorsport for your dealer price list link.</div>
-</div>
-
-<div id="app" style="display:none">
-  <div class="header">
-    <div class="header-inner">
-      <div class="logo">
-        <div class="logo-mark">TGK</div>
-        <div>
-          <div class="logo-text">TGK Motorsport</div>
-          <div class="logo-sub">Dealer Price List</div>
-        </div>
-      </div>
-      <div class="header-meta">
-        <div class="header-dealer" id="dealer-name"></div>
-        <div class="header-tier" id="dealer-tier"></div>
-        <div class="header-date" id="gen-date"></div>
+<div id="app" style="display:none;display:none;flex-direction:column;min-height:100vh">
+  <!-- Header -->
+  <div class="hdr">
+    <img class="hdr-logo" src="data:image/avif;base64,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" alt="TGK Motorsport" onerror="this.style.display='none'">
+    <div class="hdr-body">
+      <div class="hdr-title">Authorized Dealer Program</div>
+      <div class="hdr-sub" id="hdr-sub"></div>
+      <div class="hdr-badges">
+        <span class="badge badge-teal" id="hdr-disc"></span>
+        <span class="badge badge-red">CONFIDENTIAL</span>
       </div>
     </div>
-  </div>
-  <div class="dealer-strip">
-    <div class="dealer-strip-inner">
-      <div class="strip-item">Contact:<span id="dealer-contact"></span></div>
-      <div class="strip-item">Email:<span id="dealer-email"></span></div>
-      <div class="strip-item">Discount:<span id="dealer-discount"></span></div>
-      <div class="strip-item">Prices valid:<span id="price-valid"></span></div>
+    <div class="hdr-right">
+      <button class="btn-print" onclick="window.print()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print / PDF
+      </button>
     </div>
   </div>
-  <div class="toolbar">
-    <input class="search" type="text" placeholder="Search by part number or description..." id="search-input" oninput="filterTable()">
-    <div class="filter-group">
-      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
-      <button class="filter-btn" onclick="setFilter('instock',this)">In Stock</button>
-      <button class="filter-btn" onclick="setFilter('backorder',this)">Backorder</button>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" id="tab-price" onclick="showTab('price')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Price List
     </div>
-    <button class="btn-print" onclick="window.print()">&#x2399; Print / Save PDF</button>
+    <div class="tab" id="tab-fit" onclick="showTab('fit')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      Fitment Guide
+      <span class="tab-count" id="fit-count">0</span>
+    </div>
   </div>
-  <div class="summary">
-    <div class="summary-item"><b id="sum-total">0</b>Products</div>
-    <div class="summary-item"><b id="sum-instock">0</b>In Stock</div>
-    <div class="summary-item"><b id="sum-backorder">0</b>On Backorder</div>
-    <div class="summary-item"><b id="sum-build">0</b>Build to Order</div>
+
+  <!-- Price List Panel -->
+  <div id="panel-price">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search" type="text" id="q-price" placeholder="Search SKU or description&hellip;" oninput="filterPrice()">
+      </div>
+      <button class="btn btn-clear" onclick="document.getElementById('q-price').value='';filterPrice()">Clear</button>
+      <button class="btn" onclick="exportCSV()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export CSV
+      </button>
+      <button class="btn" onclick="exportExcel()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Export Excel
+      </button>
+      <div class="filter-group" style="margin-left:auto">
+        <button class="filter-btn active" onclick="setPF('all',this)">All</button>
+        <button class="filter-btn" onclick="setPF('instock',this)">In Stock</button>
+        <button class="filter-btn" onclick="setPF('backorder',this)">Backorder</button>
+      </div>
+    </div>
+    <div class="summary">
+      <div class="sum-item"><b id="s-total">0</b>Products</div>
+      <div class="sum-item"><b id="s-in">0</b>In Stock</div>
+      <div class="sum-item"><b id="s-bo">0</b>Backorder</div>
+      <div class="sum-item"><b id="s-bt">0</b>Build to Order</div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>SKU</th><th>Description</th>
+          <th class="r">MSRP</th><th class="r">Dealer Price</th><th class="r">Savings</th>
+          <th class="r">US Ship</th><th class="r">Canada</th><th class="r">Intl</th>
+          <th>Stock</th><th>Notes</th>
+        </tr></thead>
+        <tbody id="price-tbody"></tbody>
+      </table>
+    </div>
   </div>
-  <div class="content" id="content"></div>
+
+  <!-- Fitment Panel -->
+  <div id="panel-fit" style="display:none">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search" type="text" id="q-fit" placeholder="Search make, model or year&hellip;" oninput="filterFit()">
+      </div>
+      <button class="btn btn-clear" onclick="document.getElementById('q-fit').value='';filterFit()">Clear</button>
+    </div>
+    <div class="tbl-wrap page">
+      <table>
+        <thead><tr>
+          <th>Part #</th><th>Description</th>
+          <th>Make</th><th>Model</th><th>Submodel</th><th>Years</th>
+        </tr></thead>
+        <tbody id="fit-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="footer">
-    <div class="footer-note">Prices are exclusive of shipping and applicable taxes. Subject to change without notice. This price list is confidential and intended solely for the named dealer.</div>
-    <div class="footer-brand">TGK Motorsport &mdash; tgkmotorsport.com</div>
+    <div class="footer-note">Prices are exclusive of applicable taxes. This document is confidential and intended solely for the named dealer. Unauthorised distribution is prohibited. Pricing subject to change without notice.</div>
+    <div class="footer-brand">TGK Motorsport &bull; tgkmotorsport.com &bull; info@tgkmotorsport.com</div>
   </div>
 </div>
 
 <script>
-const SUPA_URL = 'https://piamamighqiielfztgic.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpYW1hbWlnaHFpaWVsZnp0Z2ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NjkxMzUsImV4cCI6MjA5MzQ0NTEzNX0.YwLflTw6F4cRzmY78QoAY6Zud2IHGVP5xL_yvMFxheA';
+const SB='https://piamamighqiielfztgic.supabase.co';
+const SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpYW1hbWlnaHFpaWVsZnp0Z2ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NjkxMzUsImV4cCI6MjA5MzQ0NTEzNX0.YwLflTw6F4cRzmY78QoAY6Zud2IHGVP5xL_yvMFxheA';
+const H={'apikey':SK,'Authorization':'Bearer '+SK};
+const fc=v=>v!=null?'$'+Number(v).toFixed(2):'—';
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-const fc = v => '$' + Number(v).toFixed(2);
-const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+let G={dealer:null,asms:[],boms:{},parts:[],fits:[]};
+let priceFilter='all';
 
-let allRows = [];
-let activeFilter = 'all';
+function api(path){return fetch(SB+'/rest/v1/'+path,{headers:H}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});}
+function tok(){return new URLSearchParams(location.search).get('d')||'';}
 
-function getToken() {
-  const p = new URLSearchParams(window.location.search);
-  return p.get('d') || p.get('token') || '';
+function discLabel(d){
+  if(d.discount_pct>0)return Math.round(d.discount_pct*100)+'% off MSRP';
+  if(d.discount_flat>0)return fc(d.discount_flat)+' flat off';
+  return 'MSRP pricing';
 }
-
-async function supa(path) {
-  const r = await fetch(SUPA_URL + '/rest/v1/' + path, {
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
-  });
-  if (!r.ok) throw new Error('HTTP ' + r.status);
-  return r.json();
-}
-
-function dealerNet(msrp, dealer) {
-  if (dealer.discount_pct && dealer.discount_pct > 0) {
-    return msrp * (1 - dealer.discount_pct);
-  }
-  if (dealer.discount_flat && dealer.discount_flat > 0) {
-    return Math.max(0, msrp - dealer.discount_flat);
-  }
+function net(msrp,d){
+  if(d.discount_pct>0)return msrp*(1-d.discount_pct);
+  if(d.discount_flat>0)return Math.max(0,msrp-d.discount_flat);
   return msrp;
 }
 
-function discountLabel(dealer) {
-  if (dealer.discount_pct && dealer.discount_pct > 0) {
-    return Math.round(dealer.discount_pct * 100) + '% off MSRP';
+function stockInfo(asm){
+  const oh=asm.total_on_hand||0;
+  if(oh>0){
+    if(oh<=3)return{cls:'badge-low',text:'Low ('+oh+')',status:'instock'};
+    return{cls:'badge-in',text:'In Stock',status:'instock'};
   }
-  if (dealer.discount_flat && dealer.discount_flat > 0) {
-    return '$' + dealer.discount_flat.toFixed(2) + ' flat discount';
-  }
-  return 'MSRP (no discount)';
+  const bom=G.boms[asm.pn]||[];
+  if(!bom.length)return{cls:'badge-back',text:'Backorder',status:'backorder'};
+  let max=Infinity;
+  bom.forEach(l=>{
+    const need=Number(l.qty)||1;
+    const isSub=l.item_type==='assembly'||l.item_type==='subassembly';
+    let avail=0;
+    if(isSub){const s=G.asms.find(a=>a.pn===l.child_pn);avail=s?(s.total_on_hand||0):0;}
+    else{const p=G.parts.find(x=>x.pn===l.child_pn);avail=p?(p.total_unpckgd||0):0;}
+    const ft=need>0?Math.floor(avail/need):Infinity;
+    if(ft<max)max=ft;
+  });
+  max=max===Infinity?0:Math.max(0,max);
+  if(max>0)return{cls:'badge-build',text:'Build to Order',status:'build'};
+  return{cls:'badge-back',text:'Backorder',status:'backorder'};
 }
 
-function stockBadge(asm, boms, parts, assemblies) {
-  const oh = asm.total_on_hand || 0;
-  // Check metafield for backorder ETA
-  const eta = asm.shopify_restock_date || '';
-  if (oh > 0) {
-    if (oh <= 3) return { badge: '<span class="badge badge-low">Low Stock (' + oh + ')</span>', eta: '' };
-    return { badge: '<span class="badge badge-instock">In Stock</span>', eta: '' };
-  }
-  // Check buildability from BOM
-  const bomLines = (boms[asm.pn] || []);
-  if (!bomLines.length) {
-    return { badge: '<span class="badge badge-backorder">Backorder</span>', eta: eta ? 'ETA: ' + eta : '' };
-  }
-  let maxBuild = Infinity;
-  for (const line of bomLines) {
-    const need = Number(line.qty) || 1;
-    const isSub = line.item_type === 'assembly' || line.item_type === 'subassembly';
-    let avail = 0;
-    if (isSub) {
-      const sub = assemblies.find(a => a.pn === line.child_pn);
-      avail = sub ? (sub.total_on_hand || 0) : 0;
-    } else {
-      const prt = parts.find(p => p.pn === line.child_pn);
-      avail = prt ? (prt.total_unpckgd || 0) : 0;
+function dispPn(a){return(a.use_new_sku&&a.new_sku)?a.new_sku:a.pn;}
+
+function renderPrice(){
+  const q=(document.getElementById('q-price').value||'').toLowerCase().trim();
+  let items=G.asms.filter(a=>a.is_fg&&!a.discontinued&&a.stage!=='dev'&&a.pl_active!==false);
+  let total=0,inC=0,boC=0,btC=0;
+  let html='',lastCat='';
+  items.sort((a,b)=>{const ca=a.category||'',cb=b.category||'';return ca!==cb?ca.localeCompare(cb):dispPn(a).localeCompare(dispPn(b));});
+
+  items.forEach(a=>{
+    const pn=dispPn(a);
+    const matchQ=!q||pn.toLowerCase().includes(q)||(a.description||'').toLowerCase().includes(q);
+    const {cls,text,status}=stockInfo(a);
+    const matchF=priceFilter==='all'||status===priceFilter||(priceFilter==='instock'&&status==='instock');
+    const visible=matchQ&&matchF;
+
+    if(a.category!==lastCat){
+      html+='<tr class="cat-row" data-cat="'+esc(a.category||'')+'"><td colspan="10">'+esc(a.category||'Uncategorised')+'</td></tr>';
+      lastCat=a.category;
     }
-    const fromThis = need > 0 ? Math.floor(avail / need) : Infinity;
-    if (fromThis < maxBuild) maxBuild = fromThis;
-  }
-  maxBuild = maxBuild === Infinity ? 0 : Math.max(0, maxBuild);
-  if (maxBuild > 0) {
-    return { badge: '<span class="badge badge-build">Build to Order</span>', eta: '' };
-  }
-  return { badge: '<span class="badge badge-backorder">Backorder</span>', eta: eta ? 'ETA: ' + eta : '' };
+
+    const msrp=a.msrp||0;
+    const netP=net(msrp,G.dealer);
+    const save=msrp-netP;
+    const usShip=a.ship_us!=null&&a.ship_us!==''?a.ship_us:'FREE';
+    const caShip=a.ship_ca!=null&&a.ship_ca!==''?a.ship_ca:'$25.00';
+    const intlShip=a.ship_intl!=null&&a.ship_intl!==''?a.ship_intl:'—';
+    const pnEl=a.product_url
+      ?'<a class="pn-link" href="'+esc(a.product_url)+'" target="_blank">'+esc(pn)+' <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>'
+      :'<span class="pn-plain">'+esc(pn)+'</span>';
+
+    if(visible){total++;if(status==='instock')inC++;else if(status==='backorder')boC++;else btC++;}
+
+    html+='<tr data-pn="'+esc(pn.toLowerCase())+'" data-desc="'+esc((a.description||'').toLowerCase())+'" data-status="'+status+'" style="'+(visible?'':'display:none')+'">'
+      +'<td>'+pnEl+'</td>'
+      +'<td class="desc-wrap"><div class="desc-main">'+esc(a.description||'')+'</div>'+(a.pl_notes?'<div class="desc-note">'+esc(a.pl_notes)+'</div>':'')+'</td>'
+      +'<td class="money money-msrp">'+fc(msrp)+'</td>'
+      +'<td class="money money-net">'+fc(netP)+'</td>'
+      +'<td class="money money-save">'+(save>0.01?'−'+fc(save):'—')+'</td>'
+      +'<td class="money money-'+(usShip==='FREE'?'free':'ship')+'">'+esc(usShip)+'</td>'
+      +'<td class="money money-ship">'+esc(caShip)+'</td>'
+      +'<td class="money money-ship">'+esc(intlShip)+'</td>'
+      +'<td><span class="stock-badge '+cls+'">'+text+'</span></td>'
+      +'<td style="font-size:10px;color:var(--text3);max-width:120px">'+esc(a.pl_notes||'')+'</td>'
+      +'</tr>';
+  });
+
+  document.getElementById('price-tbody').innerHTML=html||'<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text3)">No products found</td></tr>';
+  document.getElementById('s-total').textContent=total;
+  document.getElementById('s-in').textContent=inC;
+  document.getElementById('s-bo').textContent=boC;
+  document.getElementById('s-bt').textContent=btC;
+
+  // hide empty cat rows
+  document.querySelectorAll('#price-tbody tr.cat-row').forEach(row=>{
+    let next=row.nextElementSibling;
+    let hasVis=false;
+    while(next&&!next.classList.contains('cat-row')){if(next.style.display!=='none')hasVis=true;next=next.nextElementSibling;}
+    row.style.display=hasVis?'':'none';
+  });
 }
 
-function setFilter(f, btn) {
-  activeFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+function filterPrice(){renderPrice();}
+function setPF(f,btn){
+  priceFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  filterTable();
+  renderPrice();
 }
 
-function filterTable() {
-  const q = (document.getElementById('search-input').value || '').toLowerCase().trim();
-  const rows = document.querySelectorAll('tbody tr');
-  rows.forEach(row => {
-    const pn = (row.dataset.pn || '').toLowerCase();
-    const desc = (row.dataset.desc || '').toLowerCase();
-    const status = row.dataset.status || '';
-    const matchQ = !q || pn.includes(q) || desc.includes(q);
-    const matchF = activeFilter === 'all' || status === activeFilter;
-    row.style.display = (matchQ && matchF) ? '' : 'none';
+function renderFit(){
+  const q=(document.getElementById('q-fit').value||'').toLowerCase().trim();
+  const items=G.fits.filter(f=>{
+    if(!q)return true;
+    return(f.pn||'').toLowerCase().includes(q)||(f.make||'').toLowerCase().includes(q)||(f.model||'').toLowerCase().includes(q)||(f.submodel||'').toLowerCase().includes(q)||String(f.year_from||'').includes(q)||String(f.year_to||'').includes(q);
   });
-  // Hide empty category sections
-  document.querySelectorAll('.category').forEach(cat => {
-    const visible = [...cat.querySelectorAll('tbody tr')].some(r => r.style.display !== 'none');
-    cat.style.display = visible ? '' : 'none';
+  let lastPn='';
+  const html=items.map(f=>{
+    const asm=G.asms.find(a=>a.pn===f.pn);
+    const pn=asm?dispPn(asm):f.pn;
+    const desc=asm?asm.description:'';
+    const yr=f.year_from===f.year_to?String(f.year_from||''):(f.year_from&&f.year_to?f.year_from+'–'+f.year_to:f.year_from||f.year_to||'—');
+    const showPn=f.pn!==lastPn;lastPn=f.pn;
+    return '<tr>'
+      +(showPn?'<td><span class="pn-plain">'+esc(pn)+'</span></td><td class="desc-main">'+esc(desc)+'</td>':'<td style="border-top:none;padding-top:2px"></td><td style="border-top:none"></td>')
+      +'<td class="fit-make">'+esc(f.make||'—')+'</td>'
+      +'<td class="fit-model">'+esc(f.model||'—')+'</td>'
+      +'<td class="fit-sub">'+esc(f.submodel||'—')+'</td>'
+      +'<td class="fit-years">'+esc(yr)+'</td>'
+      +'</tr>';
+  }).join('');
+  document.getElementById('fit-tbody').innerHTML=html||'<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3)">No fitments found</td></tr>';
+}
+function filterFit(){renderFit();}
+
+function showTab(t){
+  ['price','fit'].forEach(x=>{
+    document.getElementById('panel-'+x).style.display=x===t?'':'none';
+    document.getElementById('tab-'+x).classList.toggle('active',x===t);
   });
 }
 
-function render(dealer, assemblies, boms, parts) {
-  // Header
-  const dispName = (dealer.use_new_sku && dealer.new_sku) ? dealer.new_sku : dealer.name;
-  document.getElementById('dealer-name').textContent = dealer.name;
-  document.getElementById('dealer-tier').textContent = discountLabel(dealer);
-  document.getElementById('dealer-contact').textContent = dealer.contact_name || '—';
-  document.getElementById('dealer-email').textContent = dealer.email || '—';
-  document.getElementById('dealer-discount').textContent = discountLabel(dealer);
-  document.getElementById('gen-date').textContent = 'Generated ' + new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  document.getElementById('price-valid').textContent = '30 days from generation';
-
-  // Group by category
-  const cats = {};
-  const fgAsms = assemblies.filter(a => a.is_fg && !a.discontinued && a.stage !== 'dev');
-  fgAsms.forEach(a => {
-    const cat = a.category || 'General';
-    if (!cats[cat]) cats[cat] = [];
-    cats[cat].push(a);
+function exportCSV(){
+  const d=G.dealer;
+  let rows=[['SKU','Description','MSRP','Dealer Price','Savings','US Ship','Canada','Intl','Stock','Notes']];
+  G.asms.filter(a=>a.is_fg&&!a.discontinued&&a.stage!=='dev'&&a.pl_active!==false).forEach(a=>{
+    const msrp=a.msrp||0,netP=net(msrp,d),save=msrp-netP;
+    const {text}=stockInfo(a);
+    rows.push([dispPn(a),a.description||'',msrp.toFixed(2),netP.toFixed(2),save.toFixed(2),a.ship_us||'FREE',a.ship_ca||'$25.00',a.ship_intl||'—',text,a.pl_notes||'']);
   });
-
-  let totalCount = 0, instockCount = 0, backorderCount = 0, buildCount = 0;
-  const bomsByPn = {};
-  (boms || []).forEach(b => {
-    if (!bomsByPn[b.parent_pn]) bomsByPn[b.parent_pn] = [];
-    bomsByPn[b.parent_pn].push(b);
-  });
-
-  let html = '';
-  Object.keys(cats).sort().forEach(cat => {
-    const items = cats[cat].sort((a,b) => a.pn.localeCompare(b.pn));
-    let rows = '';
-    items.forEach(asm => {
-      const msrp = asm.msrp || 0;
-      const net = dealerNet(msrp, dealer);
-      const savings = msrp - net;
-      const { badge, eta } = stockBadge(asm, bomsByPn, parts, assemblies);
-      const pn = (asm.use_new_sku && asm.new_sku) ? asm.new_sku : asm.pn;
-      // Determine status for filter
-      let status = 'instock';
-      if (badge.includes('Backorder')) status = 'backorder';
-      else if (badge.includes('Build')) status = 'build';
-      else if (badge.includes('Low')) status = 'instock';
-      // Counts
-      totalCount++;
-      if (status === 'instock') instockCount++;
-      else if (status === 'backorder') backorderCount++;
-      else if (status === 'build') buildCount++;
-
-      rows += '<tr data-pn="' + esc(pn.toLowerCase()) + '" data-desc="' + esc((asm.description||'').toLowerCase()) + '" data-status="' + status + '">'
-        + '<td><div class="pn">' + esc(pn) + '</div></td>'
-        + '<td><div class="desc">' + esc(asm.description||'') + (asm.pl_notes ? '<div class="desc-sub">' + esc(asm.pl_notes) + '</div>' : '') + '</div></td>'
-        + '<td class="price"><div class="price-msrp">' + fc(msrp) + '</div></td>'
-        + '<td class="price"><div class="price-dealer">' + fc(net) + '</div>' + (savings > 0.01 ? '<div class="price-savings">Save ' + fc(savings) + '</div>' : '') + '</td>'
-        + '<td><div>' + badge + '</div>' + (eta ? '<div class="eta">' + esc(eta) + '</div>' : '') + '</td>'
-        + '</tr>';
-    });
-
-    html += '<div class="category">'
-      + '<div class="category-header"><div class="category-name">' + esc(cat) + '</div><div class="category-count">' + items.length + ' products</div></div>'
-      + '<table>'
-      + '<thead><tr>'
-      + '<th style="width:120px">Part #</th>'
-      + '<th>Description</th>'
-      + '<th class="right" style="width:90px">MSRP</th>'
-      + '<th class="right" style="width:110px">Your Price</th>'
-      + '<th style="width:130px">Availability</th>'
-      + '</tr></thead>'
-      + '<tbody>' + rows + '</tbody>'
-      + '</table></div>';
-  });
-
-  document.getElementById('content').innerHTML = html;
-  document.getElementById('sum-total').textContent = totalCount;
-  document.getElementById('sum-instock').textContent = instockCount;
-  document.getElementById('sum-backorder').textContent = backorderCount;
-  document.getElementById('sum-build').textContent = buildCount;
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  dl('TGK-PriceList.csv','data:text/csv;charset=utf-8,'+encodeURIComponent(csv));
 }
 
-async function init() {
-  const token = getToken();
-  if (!token) {
-    showError('No dealer token', 'Please use the link provided by TGK Motorsport.');
-    return;
-  }
-  try {
-    // Load dealer
-    const dealers = await supa('dealers?price_list_token=eq.' + encodeURIComponent(token) + '&select=*&limit=1');
-    if (!dealers.length) {
-      showError('Link not recognised', 'This price list link is invalid or has expired. Please contact TGK Motorsport.');
-      return;
-    }
-    const dealer = dealers[0];
+function exportExcel(){
+  const d=G.dealer;
+  let tsv=[['SKU','Description','MSRP','Dealer Price','Savings','US Ship','Canada','Intl','Stock','Notes'].join('\t')];
+  G.asms.filter(a=>a.is_fg&&!a.discontinued&&a.stage!=='dev'&&a.pl_active!==false).forEach(a=>{
+    const msrp=a.msrp||0,netP=net(msrp,d),save=msrp-netP;
+    const {text}=stockInfo(a);
+    tsv.push([dispPn(a),a.description||'',msrp.toFixed(2),netP.toFixed(2),save.toFixed(2),a.ship_us||'FREE',a.ship_ca||'$25.00',a.ship_intl||'—',text,a.pl_notes||''].join('\t'));
+  });
+  dl('TGK-PriceList.xls','data:application/vnd.ms-excel;charset=utf-8,'+encodeURIComponent(tsv.join('\n')));
+}
 
-    // Load all data in parallel
-    const [assemblies, boms, parts] = await Promise.all([
-      supa('assemblies?select=pn,description,category,msrp,total_on_hand,is_fg,discontinued,stage,use_new_sku,new_sku,pl_notes,status&is_fg=eq.true&discontinued=eq.false&order=pn'),
-      supa('bom_items?select=parent_pn,child_pn,qty,item_type'),
-      supa('parts?select=pn,total_unpckgd')
+function dl(name,uri){const a=document.createElement('a');a.href=uri;a.download=name;a.click();}
+
+function showError(t,s){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('err-title').textContent=t;
+  document.getElementById('err-sub').innerHTML=s;
+  document.getElementById('error').style.display='block';
+}
+
+async function init(){
+  const token=tok();
+  if(!token){showError('No dealer token','Use the link provided by TGK Motorsport or contact <a href="mailto:info@tgkmotorsport.com" style="color:var(--teal)">info@tgkmotorsport.com</a>');return;}
+  try{
+    const dealers=await api('dealers?price_list_token=eq.'+encodeURIComponent(token)+'&select=*&limit=1');
+    if(!dealers.length){showError('Link not recognised','This link is invalid or expired. Contact <a href="mailto:info@tgkmotorsport.com" style="color:var(--teal)">info@tgkmotorsport.com</a>');return;}
+    G.dealer=dealers[0];
+
+    const[asms,boms,parts,fits]=await Promise.all([
+      api('assemblies?select=pn,description,category,msrp,total_on_hand,is_fg,discontinued,stage,use_new_sku,new_sku,pl_notes,pl_active,ship_us,ship_ca,ship_intl,product_url&is_fg=eq.true&discontinued=eq.false&order=pn'),
+      api('bom_items?select=parent_pn,child_pn,qty,item_type'),
+      api('parts?select=pn,total_unpckgd'),
+      api('fitments?select=pn,year_from,year_to,make,model,submodel&order=pn,make,model,year_from')
     ]);
 
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    render(dealer, assemblies, boms, parts);
-  } catch(e) {
-    showError('Failed to load price list', 'Please try refreshing. If the problem persists, contact TGK Motorsport. (' + e.message + ')');
-  }
-}
+    G.asms=asms;
+    boms.forEach(b=>{if(!G.boms[b.parent_pn])G.boms[b.parent_pn]=[];G.boms[b.parent_pn].push(b);});
+    G.parts=parts;
+    G.fits=fits;
 
-function showError(title, sub) {
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('error-title').textContent = title;
-  document.getElementById('error-sub').textContent = sub;
-  document.getElementById('error').style.display = 'block';
+    // Header
+    const d=G.dealer;
+    document.getElementById('hdr-sub').textContent=d.name+' • '+new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+    document.getElementById('hdr-disc').textContent=discLabel(d);
+    document.getElementById('fit-count').textContent=fits.length;
+
+    renderPrice();
+    renderFit();
+
+    document.getElementById('loading').style.display='none';
+    const app=document.getElementById('app');
+    app.style.display='flex';
+  }catch(e){showError('Failed to load','Please refresh. If the problem persists, contact TGK Motorsport. ('+e.message+')');}
 }
 
 init();
