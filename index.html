@@ -285,8 +285,8 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
       </button>
       <div class="filt-grp">
         <button class="filt-btn on" onclick="setPF('all',this)">All</button>
-        <button class="filt-btn" onclick="setPF('instock',this)">In Stock</button>
-        <button class="filt-btn" onclick="setPF('backorder',this)">Backorder</button>
+        <button class="filt-btn" onclick="setPF('instock',this)" title="Includes Build to Order">In Stock / Build to Order</button>
+        <button class="filt-btn" onclick="setPF('backorder',this)">On Backorder</button>
       </div>
     </div>
     <div class="summary">
@@ -382,14 +382,14 @@ function netP(msrp,d){
 }
 function stockOf(a){
   const oh=a.total_on_hand||0;
-  if(oh>0){if(oh<=3)return{cls:'b-low',txt:'Low ('+oh+')',st:'instock'};return{cls:'b-in',txt:'In Stock',st:'instock'};}
+  if(oh>0){if(oh<=3)return{cls:'b-low',txt:'Low Stock ('+oh+')',st:'instock'};return{cls:'b-in',txt:'In Stock',st:'instock'};}
   const bom=G.boms[a.pn]||[];
   if(!bom.length)return{cls:'b-back',txt:'Backorder',st:'backorder'};
   let max=Infinity;
   bom.forEach(l=>{const n=Number(l.qty)||1;const isSub=l.item_type==='assembly'||l.item_type==='subassembly';let av=0;if(isSub){const s=G.asms.find(x=>x.pn===l.child_pn);av=s?(s.total_on_hand||0):0;}else{const p=G.parts.find(x=>x.pn===l.child_pn);av=p?(p.total_unpckgd||0):0;}const ft=n>0?Math.floor(av/n):Infinity;if(ft<max)max=ft;});
   max=max===Infinity?0:Math.max(0,max);
   if(max>0)return{cls:'b-build',txt:'Build to Order',st:'build'};
-  return{cls:'b-back',txt:'Backorder',st:'backorder'};
+  return{cls:'b-back',txt:'On Backorder',st:'backorder'};
 }
 
 function renderProspect(tiers){
@@ -408,8 +408,9 @@ function renderProspect(tiers){
     var intS=(a.ship_intl!=null&&a.ship_intl!=='')?a.ship_intl:'--';
     var pnEl=a.product_url?'<a class="pn-link" href="'+esc(a.product_url)+'" target="_blank">'+esc(pn)+' <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>':'<span class="pn-plain">'+esc(pn)+'</span>';
     var tierCells=tiers.map(function(t){var np=msrp*(1-t.pct/100);return '<td class="money money-net">'+fc(np)+'</td>';}).join('');
-    total++;if(st.st==='instock')inC++;else if(st.st==='backorder')boC++;else btC++;
-    html2+='<tr>'+'<td>'+pnEl+'</td>'+'<td><div class="desc-text">'+esc(a.description||'')+'</div></td>'+'<td class="money money-msrp">'+fc(msrp)+'</td>'+tierCells+'<td class="money '+(usS==='FREE'?'money-free':'money-ship')+'">'+esc(usS)+'</td>'+'<td class="money money-ship">'+esc(caS)+'</td>'+'<td class="money money-ship">'+esc(intS)+'</td>'+'<td><span class="stock-badge '+st.cls+'">'+st.txt+'</span></td>'+'<td style="font-size:11px;color:var(--text3);max-width:130px">'+esc(a.pl_notes||'')+'</td>'+'</tr>';
+    const matchFP=priceFilter==='all'||(priceFilter==='instock'&&(st.st==='instock'||st.st==='build'))||(priceFilter==='backorder'&&st.st==='backorder');
+    total++;if(st.st==='instock'||st.st==='build')inC++;else if(st.st==='backorder')boC++;else btC++;
+    html2+='<tr style="'+(matchFP?'':'display:none')+'">'+'<td>'+pnEl+'</td>'+'<td><div class="desc-text">'+esc(a.description||'')+'</div></td>'+'<td class="money money-msrp">'+fc(msrp)+'</td>'+tierCells+'<td class="money '+(usS==='FREE'?'money-free':'money-ship')+'">'+esc(usS)+'</td>'+'<td class="money money-ship">'+esc(caS)+'</td>'+'<td class="money money-ship">'+esc(intS)+'</td>'+'<td><span class="stock-badge '+st.cls+'">'+st.txt+'</span></td>'+'<td style="font-size:11px;color:var(--text3);max-width:130px">'+esc(a.pl_notes||'')+'</td>'+'</tr>';
   });
   document.getElementById('price-tbody').innerHTML=html2;
   document.getElementById('s-total').textContent=total;
@@ -417,6 +418,9 @@ function renderProspect(tiers){
   document.getElementById('s-bo').textContent=boC;
   document.getElementById('s-bt').textContent=btC;
   document.querySelectorAll('#price-tbody tr.cat-row').forEach(function(row){var n=row.nextElementSibling,has=false;while(n&&!n.classList.contains('cat-row')){if(n.style.display!=='none')has=true;n=n.nextElementSibling;}row.style.display=has?'':'none';});
+  // Also handle search filter in prospect mode
+  var q2=(document.getElementById('q-price')?.value||'').toLowerCase().trim();
+  if(q2){document.querySelectorAll('#price-tbody tr:not(.cat-row)').forEach(function(r){var pnMatch=(r.dataset.pn||'').includes(q2);var descMatch=(r.dataset.desc||'').includes(q2);if(!pnMatch&&!descMatch)r.style.display='none';});}
 }
 function showTab(t){
   ['price','fit'].forEach(x=>{
@@ -426,12 +430,12 @@ function showTab(t){
 }
 
 // ── Price list ───────────────────────────────────────────────────────────────
-function filterPrice(){renderPrice();}
+function filterPrice(){if(G.prospect&&G.tiers){renderProspect(G.tiers);}else{renderPrice();}}
 function setPF(f,btn){
   priceFilter=f;
   document.querySelectorAll('.filt-btn').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
-  renderPrice();
+  if(G.prospect&&G.tiers){renderProspect(G.tiers);}else{renderPrice();}
 }
 
 function renderPrice(){
@@ -443,7 +447,7 @@ function renderPrice(){
     const pn=pnOf(a);
     const matchQ=!q||pn.toLowerCase().includes(q)||(a.description||'').toLowerCase().includes(q);
     const {cls,txt,st}=stockOf(a);
-    const matchF=priceFilter==='all'||st===priceFilter;
+    const matchF=priceFilter==='all'||(priceFilter==='instock'&&(st==='instock'||st==='build'))||(priceFilter==='backorder'&&st==='backorder');
     const vis=matchQ&&matchF;
     if(a.category!==lastCat){html+='<tr class="cat-row"><td colspan="10">'+esc(a.category||'Uncategorised')+'</td></tr>';lastCat=a.category;}
     const msrp=a.msrp||0,np=netP(msrp,d),sv=msrp-np;
@@ -453,7 +457,7 @@ function renderPrice(){
     const pnEl=a.product_url
       ?'<a class="pn-link" href="'+esc(a.product_url)+'" target="_blank">'+esc(pn)+' <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>'
       :'<span class="pn-plain">'+esc(pn)+'</span>';
-    if(vis){total++;if(st==='instock')inC++;else if(st==='backorder')boC++;else btC++;}
+    if(vis){total++;if(st==='instock'||st==='build')inC++;else if(st==='backorder')boC++;else btC++;}
     html+='<tr data-pn="'+esc(pn.toLowerCase())+'" data-st="'+st+'" style="'+(vis?'':'display:none')+'">'
       +'<td>'+pnEl+'</td>'
       +'<td><div class="desc-text">'+esc(a.description||'')+'</div></td>'
