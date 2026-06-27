@@ -370,6 +370,16 @@ function api(p){return fetch(SB+'/rest/v1/'+p,{headers:H}).then(r=>{if(!r.ok)thr
 function tok(){return new URLSearchParams(location.search).get('d')||'';}
 function isProspect(){return new URLSearchParams(location.search).get('prospect')==='1';}
 
+async function logVisit(dealer){
+  try{
+    await fetch(SB+'/rest/v1/dealer_visits',{
+      method:'POST',
+      headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({dealer_id:dealer.id,dealer_name:dealer.name,visited_at:new Date().toISOString(),user_agent:navigator.userAgent||null,referrer:document.referrer||null,page:'price_list_v2'})
+    });
+  }catch(e){console.warn('[TGK] visit log failed:',e);}
+}
+
 function discLabel(d){
   if(d.discount_pct>0)return Math.round(d.discount_pct*100)+'% off MSRP';
   if(d.discount_flat>0)return fc(d.discount_flat)+' flat off';
