@@ -384,7 +384,7 @@ function stockOf(a){
   const oh=a.total_on_hand||0;
   if(oh>0){if(oh<=3)return{cls:'b-low',txt:'Low Stock ('+oh+')',st:'instock'};return{cls:'b-in',txt:'In Stock',st:'instock'};}
   const bom=G.boms[a.pn]||[];
-  if(!bom.length)return{cls:'b-back',txt:'Backorder',st:'backorder'};
+  if(!bom.length)return{cls:'b-back',txt:'On Backorder',st:'backorder'};
   let max=Infinity;
   bom.forEach(l=>{const n=Number(l.qty)||1;const isSub=l.item_type==='assembly'||l.item_type==='subassembly';let av=0;if(isSub){const s=G.asms.find(x=>x.pn===l.child_pn);av=s?(s.total_on_hand||0):0;}else{const p=G.parts.find(x=>x.pn===l.child_pn);av=p?(p.total_unpckgd||0):0;}const ft=n>0?Math.floor(av/n):Infinity;if(ft<max)max=ft;});
   max=max===Infinity?0:Math.max(0,max);
