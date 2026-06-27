@@ -110,12 +110,19 @@ table.fit-tbl{width:100%;border-collapse:collapse}
 .hdr::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--orange))}
 .tabs{position:sticky;top:91px;z-index:99;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.04)}
 /* Sticky fitment card header */
-.fit-card{border-radius:10px;border:1px solid var(--border);margin-bottom:20px;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.05)}
-.fit-card-hdr{background:#fff;padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:20px;border-radius:10px 10px 0 0}
-
-.fit-card-body{padding:0 0 0 0}
+.fit-card{border-radius:10px;border:1px solid var(--border);margin-bottom:20px;padding:0;background:#fff;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.fit-card-hdr{background:#fff;padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:0}
+.fit-card-left{}
+.fit-card-pn{margin-bottom:4px}
+.fit-card-desc{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;letter-spacing:-.01em}
+.fit-card-apps{font-size:12px;color:var(--text3);font-weight:400;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fit-card-right{text-align:right;flex-shrink:0}
+.fit-price-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:4px}
+.fit-price-net{font-size:26px;font-weight:800;color:var(--orange);font-family:'JetBrains Mono',monospace;letter-spacing:-.02em;line-height:1}
+.fit-price-msrp{font-size:12px;color:var(--text3);margin-top:4px;font-family:'JetBrains Mono',monospace}
+.fit-card-body{padding:0;background:#fff}
 .fit-tbl{width:100%;border-collapse:collapse}
-.fit-tbl th{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600;padding:8px 20px;border-bottom:1.5px solid var(--border);background:#fafbfc;position:static;text-align:left}
+.fit-tbl th{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:600;padding:8px 20px;border-bottom:1.5px solid var(--border);background:#fafbfc;position:static!important;top:auto!important;text-align:left}
 .fit-tbl td{padding:9px 20px;font-size:13px;border-bottom:1px solid #f0f2f5}
 .fit-tbl tr:nth-child(even) td{background:#fafbfc}
 .fit-tbl tr:last-child td{border-bottom:none}
