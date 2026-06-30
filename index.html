@@ -446,10 +446,11 @@ function renderProspect(tiers){
     var caS=(a.ship_ca!=null&&a.ship_ca!=='')?a.ship_ca:'$25.00';
     var intS=(a.ship_intl!=null&&a.ship_intl!=='')?a.ship_intl:'--';
     var pnEl=a.product_url?'<a class="pn-link" href="'+esc(a.product_url)+'" target="_blank">'+esc(pn)+' <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>':'<span class="pn-plain">'+esc(pn)+'</span>';
+    var supersededNote=(a.use_new_sku&&a.new_sku&&a.pn&&a.pn!==pn)?'<div style="font-size:9px;color:#9ca3af;margin-top:1px">Superseded: '+esc(a.pn)+'</div>':'';
     var tierCells=tiers.map(function(t){var np=msrp*(1-t.pct/100);return '<td class="money money-net">'+fc(np)+'</td>';}).join('');
     const matchFP=priceFilter==='all'||(priceFilter==='instock'&&(st.st==='instock'||st.st==='build'))||(priceFilter==='backorder'&&st.st==='backorder');
     total++;if(st.st==='instock'||st.st==='build')inC++;else if(st.st==='backorder')boC++;else btC++;
-    html2+='<tr style="'+(matchFP?'':'display:none')+'">'+'<td>'+pnEl+'</td>'+'<td><div class="desc-text">'+esc(a.description||'')+'</div></td>'+'<td class="money money-msrp">'+fc(msrp)+'</td>'+tierCells+'<td class="money '+(usS==='FREE'?'money-free':'money-ship')+'">'+esc(usS)+'</td>'+'<td class="money money-ship">'+esc(caS)+'</td>'+'<td class="money money-ship">'+esc(intS)+'</td>'+'<td><span class="stock-badge '+st.cls+'">'+st.txt+'</span></td>'+'<td style="font-size:11px;color:var(--text3);max-width:130px">'+esc(a.pl_notes||'')+'</td>'+'</tr>';
+    html2+='<tr style="'+(matchFP?'':'display:none')+'">'+'<td>'+pnEl+supersededNote+'</td>'+'<td><div class="desc-text">'+esc(a.description||'')+'</div></td>'+'<td class="money money-msrp">'+fc(msrp)+'</td>'+tierCells+'<td class="money '+(usS==='FREE'?'money-free':'money-ship')+'">'+esc(usS)+'</td>'+'<td class="money money-ship">'+esc(caS)+'</td>'+'<td class="money money-ship">'+esc(intS)+'</td>'+'<td><span class="stock-badge '+st.cls+'">'+st.txt+'</span></td>'+'<td style="font-size:11px;color:var(--text3);max-width:130px">'+esc(a.pl_notes||'')+'</td>'+'</tr>';
   });
   document.getElementById('price-tbody').innerHTML=html2;
   document.getElementById('s-total').textContent=total;
@@ -496,9 +497,10 @@ function renderPrice(){
     const pnEl=a.product_url
       ?'<a class="pn-link" href="'+esc(a.product_url)+'" target="_blank">'+esc(pn)+' <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>'
       :'<span class="pn-plain">'+esc(pn)+'</span>';
+    const supersededNote=(a.use_new_sku&&a.new_sku&&a.pn&&a.pn!==pn)?'<div style="font-size:9px;color:#9ca3af;margin-top:1px">Superseded: '+esc(a.pn)+'</div>':'';
     if(vis){total++;if(st==='instock'||st==='build')inC++;else if(st==='backorder')boC++;else btC++;}
     html+='<tr data-pn="'+esc(pn.toLowerCase())+'" data-st="'+st+'" style="'+(vis?'':'display:none')+'">'
-      +'<td>'+pnEl+'</td>'
+      +'<td>'+pnEl+supersededNote+'</td>'
       +'<td><div class="desc-text">'+esc(a.description||'')+'</div></td>'
       +'<td class="money money-msrp">'+fc(msrp)+'</td>'
       +'<td class="money money-net">'+fc(np)+'</td>'
@@ -540,6 +542,7 @@ function filterFit(){
     const pnEl=a.product_url
       ?'<a class="pn-link" href="'+esc(a.product_url)+'" target="_blank">'+esc(pn)+' <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>'
       :'<span class="pn-plain">'+esc(pn)+'</span>';
+    const supersededNote=(a.use_new_sku&&a.new_sku&&a.pn&&a.pn!==pn)?'<div style="font-size:9px;color:#9ca3af;margin-top:1px">Superseded: '+esc(a.pn)+'</div>':'';
     const mkGroups={};
     fits.forEach(f=>{const k=f.make||'Other';if(!mkGroups[k])mkGroups[k]=[];mkGroups[k].push(f);});
     let fitRows='';
@@ -559,7 +562,7 @@ function filterFit(){
     html+='<div class="fit-card">'
       +'<div class="fit-card-hdr">'
         +'<div class="fit-card-left">'
-          +'<div class="fit-card-pn">'+pnEl+'</div>'
+          +'<div class="fit-card-pn">'+pnEl+supersededNote+'</div>'
           +'<div class="fit-card-desc">'+esc(a.description||'')+'</div>'
           +'<div class="fit-card-apps">'
             +'<span class="fit-app-count">'+fits.length+' application'+(fits.length!==1?'s':'')+'</span>'
