@@ -69,7 +69,6 @@ tr:hover td{background:#f7fbfa}
 .money-free{color:var(--green);font-weight:700;font-size:12px}
 .stock-badge{display:inline-block;font-size:10px;font-weight:600;padding:3px 9px;border-radius:5px;border:1px solid;white-space:nowrap;letter-spacing:.02em}
 .b-in{background:rgba(21,128,61,.08);color:var(--green);border-color:rgba(21,128,61,.25)}
-.b-low{background:rgba(185,28,28,.07);color:var(--red);border-color:rgba(185,28,28,.2)}
 .b-build{background:rgba(42,191,170,.09);color:var(--teal);border-color:rgba(42,191,170,.3)}
 .b-back{background:rgba(180,83,9,.08);color:var(--amber);border-color:rgba(180,83,9,.25)}
 /* Fitment cards */
@@ -423,7 +422,7 @@ function maxBuildable(pn,depth){
 }
 function stockOf(a){
   const oh=a.total_on_hand||0;
-  if(oh>0){if(oh<=3)return{cls:'b-low',txt:'Low Stock ('+oh+')',st:'instock'};return{cls:'b-in',txt:'In Stock',st:'instock'};}
+  if(oh>0){return{cls:'b-in',txt:'In Stock',st:'instock'};}
   const bom=G.boms[a.pn]||[];
   if(!bom.length)return{cls:'b-back',txt:'On Backorder',st:'backorder'};
   const max=maxBuildable(a.pn,0);
