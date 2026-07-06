@@ -365,9 +365,11 @@ let priceFilter='all';
 
 function api(p){return fetch(SB+'/rest/v1/'+p,{headers:H}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});}
 async function apiAll(p){
-  // Supabase/PostgREST caps a single request at its configured max-rows (often 1000, sometimes lower).
-  // Any table that can exceed that cap — fitments especially, which can run into the thousands — must
-  // be paged with Range headers rather than fetched in one call, or rows past the cap silently vanish.
+  // Supabase/PostgREST caps a single request at its configured max-rows. That cap can be LOWER than
+  // whatever page size we ask for via the Range header (this project's is 50) — so we can't assume
+  // "got a full page" means "more to fetch" and "got a partial page" means "done". Instead: keep
+  // paging by however many rows actually came back until a page comes back empty. Works regardless
+  // of what the server's real per-request cap is.
   const PAGE=1000;
   let from=0,all=[],more=true;
   while(more){
@@ -375,9 +377,9 @@ async function apiAll(p){
     if(!res.ok)throw new Error('HTTP '+res.status);
     const batch=await res.json();
     all=all.concat(batch);
-    more=batch.length===PAGE;
-    from+=PAGE;
-    if(from>50000)break; // safety valve against a runaway loop
+    more=batch.length>0; // keep going until a page comes back truly empty
+    from+=batch.length>0?batch.length:PAGE; // advance by what we actually got, not the requested page size
+    if(from>50000||all.length>50000)break; // safety valve against a runaway loop
   }
   return all;
 }
