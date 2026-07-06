@@ -364,6 +364,23 @@ let G={dealer:null,asms:[],boms:{},parts:[],fits:[]};
 let priceFilter='all';
 
 function api(p){return fetch(SB+'/rest/v1/'+p,{headers:H}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});}
+async function apiAll(p){
+  // Supabase/PostgREST caps a single request at its configured max-rows (often 1000, sometimes lower).
+  // Any table that can exceed that cap — fitments especially, which can run into the thousands — must
+  // be paged with Range headers rather than fetched in one call, or rows past the cap silently vanish.
+  const PAGE=1000;
+  let from=0,all=[],more=true;
+  while(more){
+    const res=await fetch(SB+'/rest/v1/'+p,{headers:Object.assign({},H,{'Range-Unit':'items','Range':from+'-'+(from+PAGE-1)})});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const batch=await res.json();
+    all=all.concat(batch);
+    more=batch.length===PAGE;
+    from+=PAGE;
+    if(from>50000)break; // safety valve against a runaway loop
+  }
+  return all;
+}
 function tok(){return new URLSearchParams(location.search).get('d')||'';}
 function isProspect(){return new URLSearchParams(location.search).get('prospect')==='1';}
 
@@ -624,10 +641,10 @@ async function init(){
     // ── Prospect mode: no dealer token needed ────────────────────────────────
     if(prospect){
       const[asms,boms,parts,fits,tiersRow]=await Promise.all([
-        api('assemblies?select=pn,description,category,msrp,total_on_hand,is_subassembly,discontinued,stage,status,use_new_sku,new_sku,pl_notes,pl_active,ship_us,ship_ca,ship_intl,product_url&discontinued=eq.false&order=pn'),
+        apiAll('assemblies?select=pn,description,category,msrp,total_on_hand,is_subassembly,discontinued,stage,status,use_new_sku,new_sku,pl_notes,pl_active,ship_us,ship_ca,ship_intl,product_url&discontinued=eq.false&order=pn'),
         api('bom_items?select=parent_pn,child_pn,qty,item_type'),
-        api('parts?select=pn,total_unpckgd'),
-        api('fitments?select=pn,year_from,year_to,make,model,submodel&order=pn,make,model,year_from'),
+        apiAll('parts?select=pn,total_unpckgd'),
+        apiAll('fitments?select=pn,year_from,year_to,make,model,submodel&order=pn,make,model,year_from'),
         api('settings?key=eq.pricing_tiers&select=value&limit=1')
       ]);
       G.asms=asms;
@@ -653,10 +670,10 @@ async function init(){
     // ── Dealer mode: look up by token ────────────────────────────────────────
     const[dlrRows,asms,boms,parts,fits]=await Promise.all([
       api('dealers?price_list_token=eq.'+encodeURIComponent(token)+'&select=*&limit=1'),
-      api('assemblies?select=pn,description,category,msrp,total_on_hand,is_subassembly,discontinued,stage,status,use_new_sku,new_sku,pl_notes,pl_active,ship_us,ship_ca,ship_intl,product_url&discontinued=eq.false&order=pn'),
+      apiAll('assemblies?select=pn,description,category,msrp,total_on_hand,is_subassembly,discontinued,stage,status,use_new_sku,new_sku,pl_notes,pl_active,ship_us,ship_ca,ship_intl,product_url&discontinued=eq.false&order=pn'),
       api('bom_items?select=parent_pn,child_pn,qty,item_type'),
-      api('parts?select=pn,total_unpckgd'),
-      api('fitments?select=pn,year_from,year_to,make,model,submodel&order=pn,make,model,year_from')
+      apiAll('parts?select=pn,total_unpckgd'),
+      apiAll('fitments?select=pn,year_from,year_to,make,model,submodel&order=pn,make,model,year_from')
     ]);
     if(!dlrRows.length){showError('Link not recognised','This link is invalid or expired. Contact <a href="mailto:info@tgkmotorsport.com" style="color:var(--teal)">info@tgkmotorsport.com</a>.');return;}
     G.dealer=dlrRows[0];
