@@ -642,7 +642,7 @@ async function init(){
     if(prospect){
       const[asms,boms,parts,fits,tiersRow]=await Promise.all([
         apiAll('assemblies?select=pn,description,category,msrp,total_on_hand,is_subassembly,discontinued,stage,status,use_new_sku,new_sku,pl_notes,pl_active,ship_us,ship_ca,ship_intl,product_url&discontinued=eq.false&order=pn'),
-        api('bom_items?select=parent_pn,child_pn,qty,item_type'),
+        apiAll('bom_items?select=parent_pn,child_pn,qty,item_type'),
         apiAll('parts?select=pn,total_unpckgd'),
         apiAll('fitments?select=pn,year_from,year_to,make,model,submodel&order=pn,make,model,year_from'),
         api('settings?key=eq.pricing_tiers&select=value&limit=1')
@@ -671,7 +671,7 @@ async function init(){
     const[dlrRows,asms,boms,parts,fits]=await Promise.all([
       api('dealers?price_list_token=eq.'+encodeURIComponent(token)+'&select=*&limit=1'),
       apiAll('assemblies?select=pn,description,category,msrp,total_on_hand,is_subassembly,discontinued,stage,status,use_new_sku,new_sku,pl_notes,pl_active,ship_us,ship_ca,ship_intl,product_url&discontinued=eq.false&order=pn'),
-      api('bom_items?select=parent_pn,child_pn,qty,item_type'),
+      apiAll('bom_items?select=parent_pn,child_pn,qty,item_type'),
       apiAll('parts?select=pn,total_unpckgd'),
       apiAll('fitments?select=pn,year_from,year_to,make,model,submodel&order=pn,make,model,year_from')
     ]);
