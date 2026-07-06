@@ -599,7 +599,8 @@ function doExport(tab,fmt){
     const fitMap={};G.fits.forEach(f=>{if(!fitMap[f.pn])fitMap[f.pn]=[];fitMap[f.pn].push(f);});
     G.asms.filter(isVisible).sort((a,b)=>pnOf(a).localeCompare(pnOf(b))).forEach(a=>{
       const msrp=a.msrp||0,np=netP(msrp,d);
-      (fitMap[a.pn]||[]).forEach(f=>rows.push([pnOf(a),a.description||'',f.make||'',f.model||'',f.submodel||'',f.year_from||'',f.year_to||'',np.toFixed(2),msrp.toFixed(2)]));
+      const _fRows=[...(fitMap[a.pn]||[]),...(a.use_new_sku&&a.new_sku&&a.new_sku!==a.pn?(fitMap[a.new_sku]||[]):[])];
+      _fRows.forEach(f=>rows.push([pnOf(a),a.description||'',f.make||'',f.model||'',f.submodel||'',f.year_from||'',f.year_to||'',np.toFixed(2),msrp.toFixed(2)]));
     });name='TGK-FitmentGuide';
   }
   if(fmt==='csv'){
