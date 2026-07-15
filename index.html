@@ -359,6 +359,8 @@ function isVisible(a){
 const fc=v=>v!=null&&v!==''?'$'+Number(v).toFixed(2):'--';
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const pnOf=a=>(a.use_new_sku&&a.new_sku)?a.new_sku:a.pn;
+function _nhlRgba(hex,a){var h=String(hex||'').replace('#','');if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];var n=parseInt(h,16);if(isNaN(n))return 'transparent';return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';}
+function noteHighlightStyle(item){var notes=(((item&&item.pl_notes)||'')+' '+((item&&item.change_notes)||'')+' '+((item&&item.notes)||'')).toLowerCase();if(!notes.trim())return '';var rules=(typeof G!=='undefined'&&G.noteHL)||[];for(var i=0;i<rules.length;i++){var w=(rules[i].word||'').trim().toLowerCase();if(w&&notes.indexOf(w)!==-1){var bg=rules[i].bg||'#dc2626';return 'background:'+_nhlRgba(bg,0.16)+';box-shadow:inset 3px 0 0 '+bg;}}return '';}
 
 let G={dealer:null,asms:[],boms:{},parts:[],fits:[]};
 let priceFilter='all';
@@ -468,7 +470,7 @@ function renderProspect(tiers){
     var tierCells=tiers.map(function(t){var np=msrp*(1-t.pct/100);return '<td class="money money-net">'+fc(np)+'</td>';}).join('');
     const matchFP=priceFilter==='all'||(priceFilter==='instock'&&(st.st==='instock'||st.st==='build'))||(priceFilter==='backorder'&&st.st==='backorder');
     total++;if(st.st==='instock'||st.st==='build')inC++;else if(st.st==='backorder')boC++;else btC++;
-    html2+='<tr style="'+(matchFP?'':'display:none')+'">'+'<td>'+pnEl+supersededNote+'</td>'+'<td><div class="desc-text">'+esc(a.description||'')+'</div></td>'+'<td class="money money-msrp">'+fc(msrp)+'</td>'+tierCells+'<td class="money '+(usS==='FREE'?'money-free':'money-ship')+'">'+esc(usS)+'</td>'+'<td class="money money-ship">'+esc(caS)+'</td>'+'<td class="money money-ship">'+esc(intS)+'</td>'+'<td><span class="stock-badge '+st.cls+'">'+st.txt+'</span></td>'+'<td style="font-size:11px;color:var(--text3);max-width:130px">'+esc(a.pl_notes||'')+'</td>'+'</tr>';
+    html2+='<tr style="'+(matchFP?noteHighlightStyle(a):'display:none')+'">'+'<td>'+pnEl+supersededNote+'</td>'+'<td><div class="desc-text">'+esc(a.description||'')+'</div></td>'+'<td class="money money-msrp">'+fc(msrp)+'</td>'+tierCells+'<td class="money '+(usS==='FREE'?'money-free':'money-ship')+'">'+esc(usS)+'</td>'+'<td class="money money-ship">'+esc(caS)+'</td>'+'<td class="money money-ship">'+esc(intS)+'</td>'+'<td><span class="stock-badge '+st.cls+'">'+st.txt+'</span></td>'+'<td style="font-size:11px;color:var(--text3);max-width:130px">'+esc(a.pl_notes||'')+'</td>'+'</tr>';
   });
   document.getElementById('price-tbody').innerHTML=html2;
   document.getElementById('s-total').textContent=total;
@@ -517,7 +519,7 @@ function renderPrice(){
       :'<span class="pn-plain">'+esc(pn)+'</span>';
     const supersededNote=(a.use_new_sku&&a.new_sku&&a.pn&&a.pn!==pn)?'<div style="font-size:9px;color:#9ca3af;margin-top:1px">Superseded: '+esc(a.pn)+'</div>':'';
     if(vis){total++;if(st==='instock'||st==='build')inC++;else if(st==='backorder')boC++;else btC++;}
-    html+='<tr data-pn="'+esc(pn.toLowerCase())+'" data-st="'+st+'" style="'+(vis?'':'display:none')+'">'
+    html+='<tr data-pn="'+esc(pn.toLowerCase())+'" data-st="'+st+'" style="'+(vis?noteHighlightStyle(a):'display:none')+'">'
       +'<td>'+pnEl+supersededNote+'</td>'
       +'<td><div class="desc-text">'+esc(a.description||'')+'</div></td>'
       +'<td class="money money-msrp">'+fc(msrp)+'</td>'
@@ -654,6 +656,7 @@ async function init(){
       G.parts=parts;G.fits=fits;
       const tiers=(tiersRow[0]&&tiersRow[0].value)||[{id:'t1',name:'Standard',pct:10},{id:'t2',name:'Preferred',pct:20}];
       G.tiers=tiers;G.prospect=true;
+      try{var _nhP=await api('settings?key=eq.note_highlights&select=value&limit=1');G.noteHL=(_nhP&&_nhP[0]&&_nhP[0].value)||[];}catch(e){G.noteHL=[];}
       const visiblePns=new Set(G.asms.filter(isVisible).map(a=>a.pn));
       const visFits=fits.filter(f=>visiblePns.has(f.pn));
       document.getElementById('fit-count').textContent=visFits.length;
@@ -679,6 +682,7 @@ async function init(){
     ]);
     if(!dlrRows.length){showError('Link not recognised','This link is invalid or expired. Contact <a href="mailto:info@tgkmotorsport.com" style="color:var(--teal)">info@tgkmotorsport.com</a>.');return;}
     G.dealer=dlrRows[0];
+    try{var _nhD=await api('settings?key=eq.note_highlights&select=value&limit=1');G.noteHL=(_nhD&&_nhD[0]&&_nhD[0].value)||[];}catch(e){G.noteHL=[];}
     G.asms=asms;
     boms.forEach(b=>{if(!G.boms[b.parent_pn])G.boms[b.parent_pn]=[];G.boms[b.parent_pn].push(b);});
     G.parts=parts;G.fits=fits;
