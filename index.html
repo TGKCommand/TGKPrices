@@ -360,6 +360,9 @@ const fc=v=>v!=null&&v!==''?'$'+Number(v).toFixed(2):'--';
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const pnOf=a=>(a.use_new_sku&&a.new_sku)?a.new_sku:a.pn;
 function _nhlRgba(hex,a){var h=String(hex||'').replace('#','');if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];var n=parseInt(h,16);if(isNaN(n))return 'transparent';return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';}
+function isSaleItem(a){return a&&a.sales_price!=null&&a.sales_price!==''&&!isNaN(parseFloat(a.sales_price));}
+var SALE_BADGE='<span style="display:inline-block;background:#dc2626;color:#fff;font-size:9px;font-weight:700;letter-spacing:.04em;padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:middle">SALE</span>';
+function saleRowStyle(){return 'background:rgba(220,38,38,0.10);box-shadow:inset 3px 0 0 #dc2626';}
 function noteHighlightStyle(item){var notes=(((item&&item.pl_notes)||'')+' '+((item&&item.change_notes)||'')+' '+((item&&item.notes)||'')).toLowerCase();if(!notes.trim())return '';var rules=(typeof G!=='undefined'&&G.noteHL)||[];for(var i=0;i<rules.length;i++){var w=(rules[i].word||'').trim().toLowerCase();if(w&&notes.indexOf(w)!==-1){var bg=rules[i].bg||'#dc2626';return 'background:'+_nhlRgba(bg,0.16)+';box-shadow:inset 3px 0 0 '+bg;}}return '';}
 
 let G={dealer:null,asms:[],boms:{},parts:[],fits:[]};
@@ -470,7 +473,7 @@ function renderProspect(tiers){
     var _spP=(a.sales_price!=null&&a.sales_price!=='')?parseFloat(a.sales_price):NaN;var tierCells=tiers.map(function(t){var np=!isNaN(_spP)?_spP:msrp*(1-t.pct/100);return '<td class="money money-net">'+fc(np)+'</td>';}).join('');
     const matchFP=priceFilter==='all'||(priceFilter==='instock'&&(st.st==='instock'||st.st==='build'))||(priceFilter==='backorder'&&st.st==='backorder');
     total++;if(st.st==='instock'||st.st==='build')inC++;else if(st.st==='backorder')boC++;else btC++;
-    html2+='<tr style="'+(matchFP?noteHighlightStyle(a):'display:none')+'">'+'<td>'+pnEl+supersededNote+'</td>'+'<td><div class="desc-text">'+esc(a.description||'')+'</div></td>'+'<td class="money money-msrp">'+fc(msrp)+'</td>'+tierCells+'<td class="money '+(usS==='FREE'?'money-free':'money-ship')+'">'+esc(usS)+'</td>'+'<td class="money money-ship">'+esc(caS)+'</td>'+'<td class="money money-ship">'+esc(intS)+'</td>'+'<td><span class="stock-badge '+st.cls+'">'+st.txt+'</span></td>'+'<td style="font-size:11px;color:var(--text3);max-width:130px;font-weight:700">'+esc(a.pl_notes||'')+'</td>'+'</tr>';
+    html2+='<tr style="'+(matchFP?(isSaleItem(a)?saleRowStyle():noteHighlightStyle(a)):'display:none')+'">'+'<td>'+pnEl+supersededNote+'</td>'+'<td><div class="desc-text">'+esc(a.description||'')+(isSaleItem(a)?SALE_BADGE:'')+'</div></td>'+'<td class="money money-msrp">'+fc(msrp)+'</td>'+tierCells+'<td class="money '+(usS==='FREE'?'money-free':'money-ship')+'">'+esc(usS)+'</td>'+'<td class="money money-ship">'+esc(caS)+'</td>'+'<td class="money money-ship">'+esc(intS)+'</td>'+'<td><span class="stock-badge '+st.cls+'">'+st.txt+'</span></td>'+'<td style="font-size:11px;color:var(--text3);max-width:130px;font-weight:700">'+esc(a.pl_notes||'')+'</td>'+'</tr>';
   });
   document.getElementById('price-tbody').innerHTML=html2;
   document.getElementById('s-total').textContent=total;
@@ -519,9 +522,9 @@ function renderPrice(){
       :'<span class="pn-plain">'+esc(pn)+'</span>';
     const supersededNote=(a.use_new_sku&&a.new_sku&&a.pn&&a.pn!==pn)?'<div style="font-size:9px;color:#9ca3af;margin-top:1px">Superseded: '+esc(a.pn)+'</div>':'';
     if(vis){total++;if(st==='instock'||st==='build')inC++;else if(st==='backorder')boC++;else btC++;}
-    html+='<tr data-pn="'+esc(pn.toLowerCase())+'" data-st="'+st+'" style="'+(vis?noteHighlightStyle(a):'display:none')+'">'
+    html+='<tr data-pn="'+esc(pn.toLowerCase())+'" data-st="'+st+'" style="'+(vis?(isSaleItem(a)?saleRowStyle():noteHighlightStyle(a)):'display:none')+'">'
       +'<td>'+pnEl+supersededNote+'</td>'
-      +'<td><div class="desc-text">'+esc(a.description||'')+'</div></td>'
+      +'<td><div class="desc-text">'+esc(a.description||'')+(isSaleItem(a)?SALE_BADGE:'')+'</div></td>'
       +'<td class="money money-msrp">'+fc(msrp)+'</td>'
       +'<td class="money money-net">'+fc(np)+'</td>'
       +'<td class="money money-save">'+(sv>0.01?'&minus;'+fc(sv):'&mdash;')+'</td>'
