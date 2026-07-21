@@ -284,7 +284,7 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
       </button>
       <div class="filt-grp">
         <button class="filt-btn on" onclick="setPF('all',this)">All</button>
-        <button class="filt-btn" onclick="setPF('instock',this)" title="Includes Build to Order">In Stock / Build to Order</button>
+        <button class="filt-btn" onclick="setPF('instock',this)">In Stock</button>
         <button class="filt-btn" onclick="setPF('backorder',this)">On Backorder</button>
       </div>
     </div>
@@ -292,7 +292,6 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
       <div class="sum-item"><b id="s-total">0</b> Products</div>
       <div class="sum-item"><b id="s-in">0</b> In Stock</div>
       <div class="sum-item"><b id="s-bo">0</b> Backorder</div>
-      <div class="sum-item"><b id="s-bt">0</b> Build to Order</div>
     </div>
     <div class="tbl-wrap">
       <table>
@@ -450,7 +449,7 @@ function stockOf(a){
   const bom=G.boms[a.pn]||[];
   if(!bom.length)return{cls:'b-back',txt:'On Backorder',st:'backorder'};
   const max=maxBuildable(a.pn,0);
-  if(max>0)return{cls:'b-build',txt:'Build to Order',st:'build'};
+  if(max>0)return{cls:'b-in',txt:'In Stock',st:'instock'}; // buildable from component stock = available to dealers, shown as In Stock (counted/filtered as in-stock elsewhere)
   return{cls:'b-back',txt:'On Backorder',st:'backorder'};
 }
 
@@ -479,7 +478,6 @@ function renderProspect(tiers){
   document.getElementById('s-total').textContent=total;
   document.getElementById('s-in').textContent=inC;
   document.getElementById('s-bo').textContent=boC;
-  document.getElementById('s-bt').textContent=btC;
   document.querySelectorAll('#price-tbody tr.cat-row').forEach(function(row){var n=row.nextElementSibling,has=false;while(n&&!n.classList.contains('cat-row')){if(n.style.display!=='none')has=true;n=n.nextElementSibling;}row.style.display=has?'':'none';});
   // Also handle search filter in prospect mode
   var q2=(document.getElementById('q-price')?.value||'').toLowerCase().trim();
@@ -539,7 +537,6 @@ function renderPrice(){
   document.getElementById('s-total').textContent=total;
   document.getElementById('s-in').textContent=inC;
   document.getElementById('s-bo').textContent=boC;
-  document.getElementById('s-bt').textContent=btC;
   document.querySelectorAll('#price-tbody tr.cat-row').forEach(row=>{let n=row.nextElementSibling,has=false;while(n&&!n.classList.contains('cat-row')){if(n.style.display!=='none')has=true;n=n.nextElementSibling;}row.style.display=has?'':'none';});
 }
 
