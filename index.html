@@ -389,6 +389,10 @@ async function apiAll(p){
 }
 function tok(){return new URLSearchParams(location.search).get('d')||'';}
 function isProspect(){return new URLSearchParams(location.search).get('prospect')==='1';}
+// Set by TGK's own staff when previewing a dealer's price list (the ERP's "View" button appends
+// this). A staff member checking a price shouldn't be counted as -- or shown in the log as -- a
+// dealer visit; only the plain link that actually goes to the dealer should ever log anything.
+function isStaffPreview(){return new URLSearchParams(location.search).get('staff')==='1';}
 
 async function logVisit(dealer){
   try{
@@ -686,7 +690,7 @@ async function init(){
     G.asms=asms;
     boms.forEach(b=>{if(!G.boms[b.parent_pn])G.boms[b.parent_pn]=[];G.boms[b.parent_pn].push(b);});
     G.parts=parts;G.fits=fits;
-    logVisit(G.dealer); // non-blocking
+    if(!isStaffPreview())logVisit(G.dealer); // non-blocking; skipped for staff's own preview clicks
     const d=safeDealer();
     const visiblePns=new Set(G.asms.filter(isVisible).map(a=>a.pn));
     const visFits=fits.filter(f=>visiblePns.has(f.pn));
