@@ -268,6 +268,7 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
 
   <!-- Price List -->
   <div id="panel-price">
+    <div id="cat-filter-bar" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 10px"></div>
     <div class="toolbar">
       <div class="search-wrap">
         <svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -478,7 +479,10 @@ function renderProspect(tiers){
   var tierCols=tiers.map(function(t){return '<th class="r" style="color:var(--teal)">'+esc(t.name)+' ('+t.pct+'%)</th>';}).join('');
   var thead=document.querySelector('#panel-price thead tr');
   if(thead)thead.innerHTML='<th>SKU</th><th>Description</th><th class="r">MSRP</th>'+tierCols+'<th class="r">US Ship</th><th class="r">Canada</th><th class="r">Intl</th><th>Stock</th><th>Notes</th>';
-  var items=asms.filter(isVisible).sort(function(a,b){var ca=fgSectionLabel(a.category),cb=fgSectionLabel(b.category);return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));});
+  // The prospect list honours the same category filter as the dealer list - a visitor comparing
+  // tiers benefits from narrowing the view just as much, and having the chip bar visibly do
+  // nothing on this tab would be worse than not showing it.
+  var items=asms.filter(isVisible).filter(catAllows).sort(function(a,b){var ca=fgSectionLabel(a.category),cb=fgSectionLabel(b.category);return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));});
   var total=0,inC=0,boC=0,btC=0,lastCat='',html2='';
   items.forEach(function(a){
     var pn=pnOf(a);var st=stockOf(a);
@@ -511,6 +515,68 @@ function showTab(t){
 }
 
 // ── Price list ───────────────────────────────────────────────────────────────
+// [FEATURE] Dealer-side category filter. Distinct from the admin's allowed_subcategories, which
+// controls what a dealer is PERMITTED to see: this lets the dealer narrow their own view within
+// that permission, so somebody who only sells powersports is not scrolling past automotive parts
+// on every visit. The choice is remembered per dealer link so it survives a reload.
+var catSel=null; // null = show every category available to this dealer
+function _catKey(){try{return 'tgk_cats_'+(new URLSearchParams(location.search).get('t')||'p');}catch(e){return 'tgk_cats';}}
+function availableCats(){
+  var m={};
+  G.asms.filter(isVisible).forEach(function(a){var c=fgSectionLabel(a.category);m[c]=(m[c]||0)+1;});
+  return Object.keys(m).sort().map(function(k){return{name:k,count:m[k]};});
+}
+function catAllows(a){
+  if(!catSel||!catSel.length)return true;
+  return catSel.indexOf(fgSectionLabel(a.category))!==-1;
+}
+function renderCatBar(){
+  var bar=document.getElementById('cat-filter-bar');
+  if(!bar)return;
+  var cats=availableCats();
+  // Pointless with a single category - the bar would be one chip that does nothing.
+  if(cats.length<2){bar.style.display='none';return;}
+  var all=!catSel||!catSel.length;
+  var html='<span style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b7280;margin-right:2px">Categories</span>';
+  html+='<button class="btn" style="padding:4px 10px;font-size:12px'+(all?';border-color:var(--teal);color:var(--teal);background:rgba(13,148,136,.08)':'')+'" onclick="setCatFilter(null)">All</button>';
+  cats.forEach(function(c,i){
+    var on=!all&&catSel.indexOf(c.name)!==-1;
+    html+='<button class="btn" style="padding:4px 10px;font-size:12px'+(on?';border-color:var(--teal);color:var(--teal);background:rgba(13,148,136,.08)':'')+'" onclick="toggleCat('+i+')">'
+      +esc(c.name)+' <span style="opacity:.6">('+c.count+')</span></button>';
+  });
+  bar.innerHTML=html;
+  bar.style.display='flex';
+  window._catList=cats;
+}
+function setCatFilter(v){
+  catSel=v;
+  try{v&&v.length?localStorage.setItem(_catKey(),JSON.stringify(v)):localStorage.removeItem(_catKey());}catch(e){}
+  renderCatBar();filterPrice();
+}
+function toggleCat(i){
+  var cats=window._catList||availableCats();
+  var name=cats[i]&&cats[i].name;
+  if(!name)return;
+  var cur=(catSel||[]).slice();
+  var at=cur.indexOf(name);
+  if(at===-1)cur.push(name); else cur.splice(at,1);
+  // Unticking the last one means "show everything" rather than an empty list - that is what a
+  // dealer actually intends when they untick their way back down to nothing.
+  setCatFilter(cur.length?cur:null);
+}
+function restoreCatFilter(){
+  try{
+    var raw=localStorage.getItem(_catKey());
+    if(!raw)return;
+    var saved=JSON.parse(raw);
+    if(!Array.isArray(saved)||!saved.length)return;
+    // Drop any remembered category that no longer exists or is no longer permitted, so a stale
+    // saved choice can never leave a dealer staring at an empty price list.
+    var have=availableCats().map(function(c){return c.name;});
+    var keep=saved.filter(function(n){return have.indexOf(n)!==-1;});
+    catSel=keep.length?keep:null;
+  }catch(e){catSel=null;}
+}
 function filterPrice(){if(G.prospect&&G.tiers){renderProspect(G.tiers);}else{renderPrice();}}
 function setPF(f,btn){
   priceFilter=f;
@@ -524,13 +590,27 @@ function renderPrice(){
   const d=safeDealer();
   const items=G.asms.filter(isVisible).sort((a,b)=>{const ca=fgSectionLabel(a.category),cb=fgSectionLabel(b.category);return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));});
   let total=0,inC=0,boC=0,btC=0,lastCat='',html='';
-  items.forEach(a=>{
+  // [FIX] The category header was emitted from the position of the item in the list, BEFORE the
+  // per-row visibility test below - so any filter that hid every item in a category still left its
+  // header behind as an orphan band with nothing under it. Barely noticeable with only search and
+  // the stock chips, but a category filter makes it obvious: untick a category and its heading
+  // would have stayed on screen. Visibility is now resolved for every row up front, so a header is
+  // only written when that category actually has something to show.
+  const visMap=items.map(a=>{
     const pn=pnOf(a);
     const matchQ=!q||pn.toLowerCase().includes(q)||(a.description||'').toLowerCase().includes(q);
-    const {cls,txt,st}=stockOf(a);
+    const {st}=stockOf(a);
     const matchF=priceFilter==='all'||(priceFilter==='instock'&&(st==='instock'||st==='build'))||(priceFilter==='backorder'&&st==='backorder');
-    const vis=matchQ&&matchF;
-    if(fgSectionLabel(a.category)!==lastCat){lastCat=fgSectionLabel(a.category);html+='<tr class="cat-row"><td colspan="10">'+esc(lastCat)+'</td></tr>';}
+    return matchQ&&matchF&&catAllows(a);
+  });
+  const catHasVisible={};
+  items.forEach((a,i)=>{if(visMap[i])catHasVisible[fgSectionLabel(a.category)]=1;});
+  items.forEach((a,i)=>{
+    const pn=pnOf(a);
+    const {cls,txt,st}=stockOf(a);
+    const vis=visMap[i];
+    const _cat=fgSectionLabel(a.category);
+    if(_cat!==lastCat&&catHasVisible[_cat]){lastCat=_cat;html+='<tr class="cat-row"><td colspan="10">'+esc(_cat)+'</td></tr>';}
     const msrp=a.msrp||0,np=netP(msrp,d,a.sales_price),sv=msrp-np;
     const usS=(a.ship_us!=null&&a.ship_us!=='')?a.ship_us:'FREE';
     const caS=(a.ship_ca!=null&&a.ship_ca!=='')?a.ship_ca:'$25.00';
@@ -566,7 +646,7 @@ function filterFit(){
   const make=(document.getElementById('make-sel').value||'').toLowerCase();
   const d=safeDealer();
   const fitMap={};G.fits.forEach(f=>{if(!fitMap[f.pn])fitMap[f.pn]=[];fitMap[f.pn].push(f);});
-  const items=G.asms.filter(isVisible).sort((a,b)=>pnOf(a).localeCompare(pnOf(b)));
+  const items=G.asms.filter(isVisible).filter(catAllows).sort((a,b)=>pnOf(a).localeCompare(pnOf(b)));
   let count=0,html='';
   items.forEach(a=>{
     const pn=pnOf(a);
@@ -631,7 +711,9 @@ function doExport(tab,fmt){
   const d=safeDealer();let rows,name;
   if(tab==='price'){
     rows=[['SKU','Description','MSRP','Your Price','Savings','US Ship','Canada','Intl','Stock','Notes']];
-    G.asms.filter(isVisible).sort((a,b)=>{const ca=fgSectionLabel(a.category),cb=fgSectionLabel(b.category);return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));}).forEach(a=>{
+    // Exports follow the category filter: a dealer who has narrowed to one category and hits
+    // Export expects that category, not the entire catalogue back again.
+    G.asms.filter(isVisible).filter(catAllows).sort((a,b)=>{const ca=fgSectionLabel(a.category),cb=fgSectionLabel(b.category);return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));}).forEach(a=>{
       const msrp=a.msrp||0,np=netP(msrp,d,a.sales_price),sv=msrp-np;const{txt}=stockOf(a);
       rows.push([pnOf(a),a.description||'',msrp.toFixed(2),np.toFixed(2),sv.toFixed(2),a.ship_us||'FREE',a.ship_ca||'$25.00',a.ship_intl||'--',txt,a.pl_notes||'']);
     });name='TGK-PriceList';
@@ -689,6 +771,7 @@ async function init(){
       var confBadge=document.querySelector('.badge-red');if(confBadge)confBadge.style.display='none';
       document.getElementById('loading').style.display='none';
       document.getElementById('app').style.display='block';
+      restoreCatFilter();renderCatBar();
       renderProspect(tiers);filterFit();
       return;
     }
@@ -718,6 +801,7 @@ async function init(){
     document.getElementById('hdr-disc').textContent=discLabel(d);
     document.getElementById('loading').style.display='none';
     document.getElementById('app').style.display='block';
+    restoreCatFilter();renderCatBar();
     renderPrice();filterFit();
   }catch(e){showError('Failed to load','Please refresh. ('+e.message+')');}
 }
