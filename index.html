@@ -345,8 +345,24 @@ const HW_CATS=['Bolts/Washers/Nuts','Orings','Fittings','Heims & Sphericals','Su
 const SUPPLY_CATS=['Shipping','Bulk Pieces'];
 const ALL_EXCL=[...HW_CATS,...SUPPLY_CATS];
 function isHWPack(pn){return /^TGK-P\d/i.test(pn||'');}
+// [FEATURE] Finished-goods categories are now hierarchical - "Finished Goods/Automotive",
+// "Finished Goods/Powersports" and so on. This gate tested the category EXACTLY, so the moment a
+// subcategory was set the product disappeared from every dealer's list without a trace. Matching
+// the TOP-LEVEL segment keeps plain "Finished Goods" working and admits subcategories. Segment
+// based rather than startsWith so "Bolts/Washers/Nuts" can never be mistaken for a finished good.
+function catTop(c){return String(c||'').split('/')[0].trim();}
+function catSub(c){var p=String(c||'').split('/');return p.length>1?p.slice(1).join('/').trim():'';}
+function fgSectionLabel(c){return catSub(c)||'Uncategorised';}
+// Per-dealer visibility. null / missing / empty array all mean "no restriction", so every dealer
+// that predates this feature keeps seeing the full list with no migration needed.
+function dealerAllows(a){
+  var allow=G.dealer&&G.dealer.allowed_subcategories;
+  if(!Array.isArray(allow)||!allow.length)return true;
+  return allow.indexOf(catSub(a.category))!==-1;
+}
 function isVisible(a){
-  if(a.category!=='Finished Goods')return false;
+  if(catTop(a.category)!=='Finished Goods')return false;
+  if(!dealerAllows(a))return false;
   if(a.discontinued)return false;
   if(a.stage==='dev'||a.stage==='discontinued')return false;
   if(a.status==='Inactive')return false;
@@ -462,11 +478,11 @@ function renderProspect(tiers){
   var tierCols=tiers.map(function(t){return '<th class="r" style="color:var(--teal)">'+esc(t.name)+' ('+t.pct+'%)</th>';}).join('');
   var thead=document.querySelector('#panel-price thead tr');
   if(thead)thead.innerHTML='<th>SKU</th><th>Description</th><th class="r">MSRP</th>'+tierCols+'<th class="r">US Ship</th><th class="r">Canada</th><th class="r">Intl</th><th>Stock</th><th>Notes</th>';
-  var items=asms.filter(isVisible).sort(function(a,b){var ca=a.category||'',cb=b.category||'';return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));});
+  var items=asms.filter(isVisible).sort(function(a,b){var ca=fgSectionLabel(a.category),cb=fgSectionLabel(b.category);return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));});
   var total=0,inC=0,boC=0,btC=0,lastCat='',html2='';
   items.forEach(function(a){
     var pn=pnOf(a);var st=stockOf(a);
-    if(a.category!==lastCat){html2+='<tr class="cat-row"><td colspan="'+(6+tiers.length)+'">'+esc(a.category||'Uncategorised')+'</td></tr>';lastCat=a.category;}
+    if(fgSectionLabel(a.category)!==lastCat){lastCat=fgSectionLabel(a.category);html2+='<tr class="cat-row"><td colspan="'+(6+tiers.length)+'">'+esc(lastCat)+'</td></tr>';}
     var msrp=a.msrp||0;
     var usS=(a.ship_us!=null&&a.ship_us!=='')?a.ship_us:'FREE';
     var caS=(a.ship_ca!=null&&a.ship_ca!=='')?a.ship_ca:'$25.00';
@@ -506,7 +522,7 @@ function setPF(f,btn){
 function renderPrice(){
   const q=(document.getElementById('q-price').value||'').toLowerCase().trim();
   const d=safeDealer();
-  const items=G.asms.filter(isVisible).sort((a,b)=>{const ca=a.category||'',cb=b.category||'';return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));});
+  const items=G.asms.filter(isVisible).sort((a,b)=>{const ca=fgSectionLabel(a.category),cb=fgSectionLabel(b.category);return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));});
   let total=0,inC=0,boC=0,btC=0,lastCat='',html='';
   items.forEach(a=>{
     const pn=pnOf(a);
@@ -514,7 +530,7 @@ function renderPrice(){
     const {cls,txt,st}=stockOf(a);
     const matchF=priceFilter==='all'||(priceFilter==='instock'&&(st==='instock'||st==='build'))||(priceFilter==='backorder'&&st==='backorder');
     const vis=matchQ&&matchF;
-    if(a.category!==lastCat){html+='<tr class="cat-row"><td colspan="10">'+esc(a.category||'Uncategorised')+'</td></tr>';lastCat=a.category;}
+    if(fgSectionLabel(a.category)!==lastCat){lastCat=fgSectionLabel(a.category);html+='<tr class="cat-row"><td colspan="10">'+esc(lastCat)+'</td></tr>';}
     const msrp=a.msrp||0,np=netP(msrp,d,a.sales_price),sv=msrp-np;
     const usS=(a.ship_us!=null&&a.ship_us!=='')?a.ship_us:'FREE';
     const caS=(a.ship_ca!=null&&a.ship_ca!=='')?a.ship_ca:'$25.00';
@@ -615,7 +631,7 @@ function doExport(tab,fmt){
   const d=safeDealer();let rows,name;
   if(tab==='price'){
     rows=[['SKU','Description','MSRP','Your Price','Savings','US Ship','Canada','Intl','Stock','Notes']];
-    G.asms.filter(isVisible).sort((a,b)=>{const ca=a.category||'',cb=b.category||'';return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));}).forEach(a=>{
+    G.asms.filter(isVisible).sort((a,b)=>{const ca=fgSectionLabel(a.category),cb=fgSectionLabel(b.category);return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));}).forEach(a=>{
       const msrp=a.msrp||0,np=netP(msrp,d,a.sales_price),sv=msrp-np;const{txt}=stockOf(a);
       rows.push([pnOf(a),a.description||'',msrp.toFixed(2),np.toFixed(2),sv.toFixed(2),a.ship_us||'FREE',a.ship_ca||'$25.00',a.ship_intl||'--',txt,a.pl_notes||'']);
     });name='TGK-PriceList';
