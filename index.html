@@ -161,7 +161,49 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
   .fit-tbl th{background:#f5f5f5}
   .fit-card{page-break-inside:avoid}
 }
+/* Category chip bar. Padding matches .toolbar (14px 36px) so the label lines up with the search
+   box below it rather than running off the left edge of the panel. */
+#cat-filter-bar{display:none;align-items:center;gap:6px;flex-wrap:wrap;padding:12px 36px 0}
+#cat-filter-bar .cf-lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-right:4px}
+
+@media print{
+  /* [FIX] Printing was rendering the MOBILE layout. Letter portrait at 96dpi is ~816px wide and
+     roughly 700px inside margins, which is under the 768px mobile breakpoint - so every
+     max-width:768px rule applied to the printed page: four columns hidden, shrunken type, narrow
+     padding. This block sits after that one so it wins, and restores a real print layout.
+     Landscape because a dealer price list is 10 columns wide; in portrait the description column
+     collapses and every row wraps to three lines, which is what made the output so tall. */
+  @page{size:letter landscape;margin:10mm 9mm}
+  #cat-filter-bar{display:none!important}
+  .summary{padding:6px 0!important}
+  .sum-item{padding:3px 9px!important;margin-right:6px!important}
+  /* Undo the mobile column hiding - all ten columns fit in landscape. */
+  #panel-price table th,#panel-price table td{display:table-cell!important}
+  .tbl-wrap{margin:8px 0!important;border:none!important;border-radius:0!important;overflow:visible!important}
+  #panel-price table{min-width:0!important;width:100%!important}
+  #panel-price table:not(.pl-prospect){table-layout:fixed!important}
+  #panel-price table th{padding:5px 6px!important;font-size:7.5pt!important;background:#f1f3f5!important}
+  #panel-price table td{padding:4px 6px!important;font-size:8pt!important;vertical-align:middle!important}
+  .pn-link,.pn-plain{font-size:7.5pt!important}
+  /* Fixed widths stop one long description from stretching every row. */
+  #panel-price table:not(.pl-prospect) th:nth-child(1),#panel-price table:not(.pl-prospect) td:nth-child(1){width:13%}
+  #panel-price table:not(.pl-prospect) th:nth-child(2),#panel-price table:not(.pl-prospect) td:nth-child(2){width:30%}
+  #panel-price table:not(.pl-prospect) th:nth-child(3),#panel-price table:not(.pl-prospect) td:nth-child(3){width:7%}
+  #panel-price table:not(.pl-prospect) th:nth-child(4),#panel-price table:not(.pl-prospect) td:nth-child(4){width:8%}
+  #panel-price table:not(.pl-prospect) th:nth-child(5),#panel-price table:not(.pl-prospect) td:nth-child(5){width:7%}
+  #panel-price table:not(.pl-prospect) th:nth-child(6),#panel-price table:not(.pl-prospect) td:nth-child(6){width:6%}
+  #panel-price table:not(.pl-prospect) th:nth-child(7),#panel-price table:not(.pl-prospect) td:nth-child(7){width:6%}
+  #panel-price table:not(.pl-prospect) th:nth-child(8),#panel-price table:not(.pl-prospect) td:nth-child(8){width:6%}
+  #panel-price table:not(.pl-prospect) th:nth-child(9),#panel-price table:not(.pl-prospect) td:nth-child(9){width:8%}
+  #panel-price table:not(.pl-prospect) th:nth-child(10),#panel-price table:not(.pl-prospect) td:nth-child(10){width:9%}
+  thead{display:table-header-group}
+  tr{page-break-inside:avoid}
+  .cat-row{page-break-after:avoid}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
+
 @media(max-width:768px){
+  #cat-filter-bar{padding:10px 16px 0}
   /* Header */
   .hdr{flex-wrap:wrap;padding:14px 16px;gap:12px;position:sticky;top:0}
   .hdr-logo{height:38px}
@@ -189,14 +231,14 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
   .tbl-wrap{margin:12px 16px;border-radius:8px;overflow-x:auto;-webkit-overflow-scrolling:touch}
   #panel-price table{min-width:0}
   /* Hide: Savings(5), Canada(7), Intl(8), Notes(10) */
-  #panel-price table th:nth-child(5),
-  #panel-price table td:nth-child(5),
-  #panel-price table th:nth-child(7),
-  #panel-price table td:nth-child(7),
-  #panel-price table th:nth-child(8),
-  #panel-price table td:nth-child(8),
-  #panel-price table th:nth-child(10),
-  #panel-price table td:nth-child(10){display:none}
+  #panel-price table:not(.pl-prospect) th:nth-child(5),
+  #panel-price table:not(.pl-prospect) td:nth-child(5),
+  #panel-price table:not(.pl-prospect) th:nth-child(7),
+  #panel-price table:not(.pl-prospect) td:nth-child(7),
+  #panel-price table:not(.pl-prospect) th:nth-child(8),
+  #panel-price table:not(.pl-prospect) td:nth-child(8),
+  #panel-price table:not(.pl-prospect) th:nth-child(10),
+  #panel-price table:not(.pl-prospect) td:nth-child(10){display:none}
   /* SKU column tighter on mobile */
   .pn-link,.pn-plain{font-size:10px}
   td{padding:8px 8px;font-size:12px}
@@ -268,7 +310,7 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
 
   <!-- Price List -->
   <div id="panel-price">
-    <div id="cat-filter-bar" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 10px"></div>
+    <div id="cat-filter-bar"></div>
     <div class="toolbar">
       <div class="search-wrap">
         <svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -479,6 +521,9 @@ function renderProspect(tiers){
   var tierCols=tiers.map(function(t){return '<th class="r" style="color:var(--teal)">'+esc(t.name)+' ('+t.pct+'%)</th>';}).join('');
   var thead=document.querySelector('#panel-price thead tr');
   if(thead)thead.innerHTML='<th>SKU</th><th>Description</th><th class="r">MSRP</th>'+tierCols+'<th class="r">US Ship</th><th class="r">Canada</th><th class="r">Intl</th><th>Stock</th><th>Notes</th>';
+  // Tagged so the print stylesheet knows this table has a variable column count (one per tier) and
+  // must not have the dealer table's fixed column widths applied to it.
+  var _ptbl=document.querySelector('#panel-price table');if(_ptbl)_ptbl.classList.add('pl-prospect');
   // The prospect list honours the same category filter as the dealer list - a visitor comparing
   // tiers benefits from narrowing the view just as much, and having the chip bar visibly do
   // nothing on this tab would be worse than not showing it.
@@ -537,7 +582,7 @@ function renderCatBar(){
   // Pointless with a single category - the bar would be one chip that does nothing.
   if(cats.length<2){bar.style.display='none';return;}
   var all=!catSel||!catSel.length;
-  var html='<span style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b7280;margin-right:2px">Categories</span>';
+  var html='<span class="cf-lbl">Categories</span>';
   html+='<button class="btn" style="padding:4px 10px;font-size:12px'+(all?';border-color:var(--teal);color:var(--teal);background:rgba(13,148,136,.08)':'')+'" onclick="setCatFilter(null)">All</button>';
   cats.forEach(function(c,i){
     var on=!all&&catSel.indexOf(c.name)!==-1;
@@ -586,6 +631,7 @@ function setPF(f,btn){
 }
 
 function renderPrice(){
+  var _dtbl=document.querySelector('#panel-price table');if(_dtbl)_dtbl.classList.remove('pl-prospect');
   const q=(document.getElementById('q-price').value||'').toLowerCase().trim();
   const d=safeDealer();
   const items=G.asms.filter(isVisible).sort((a,b)=>{const ca=fgSectionLabel(a.category),cb=fgSectionLabel(b.category);return ca!==cb?ca.localeCompare(cb):pnOf(a).localeCompare(pnOf(b));});
