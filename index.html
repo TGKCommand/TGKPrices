@@ -446,6 +446,20 @@ async function apiAll(p){
   }
   return all;
 }
+// [Fitment v2] Engine + chassis once the fitment migration has run (falls back to the old columns before
+// that). A SKU sold under two product pages (e.g. a C7 page and a D4 page) is listed once per vehicle.
+async function loadFits(){
+  var cols='pn,year_from,year_to,make,model,submodel',ord='&order=pn,make,model,year_from';
+  try{return dedupeFits(await apiAll('fitments?select='+cols+',engine,chassis'+ord));}
+  catch(e){return dedupeFits(await apiAll('fitments?select='+cols+ord));}
+}
+function dedupeFits(rows){
+  var seen={};
+  return (rows||[]).filter(function(f){
+    var k=[f.pn,f.make,f.model,f.year_from,f.year_to,f.engine||'',f.chassis||'',(f.engine||f.chassis)?'':(f.submodel||'')].join('|').toLowerCase();
+    if(seen[k])return false;seen[k]=1;return true;
+  });
+}
 function tok(){return new URLSearchParams(location.search).get('d')||'';}
 function isProspect(){return new URLSearchParams(location.search).get('prospect')==='1';}
 // Set by TGK's own staff when previewing a dealer's price list (the ERP's "View" button appends
@@ -696,15 +710,16 @@ function filterFit(){
   let count=0,html='';
   items.forEach(a=>{
     const pn=pnOf(a);
-    const fits=(fitMap[a.pn]||[]).filter(f=>{
+    const fits=[...(fitMap[a.pn]||[]),...(a.use_new_sku&&a.new_sku&&a.new_sku!==a.pn?(fitMap[a.new_sku]||[]):[])].filter(f=>{ // new SKU too (the export already did this)
       const mOk=!make||(f.make||'').toLowerCase()===make;
-      const qOk=!q||pn.toLowerCase().includes(q)||(a.description||'').toLowerCase().includes(q)||(f.make||'').toLowerCase().includes(q)||(f.model||'').toLowerCase().includes(q)||(f.submodel||'').toLowerCase().includes(q)||String(f.year_from||'').includes(q)||String(f.year_to||'').includes(q);
+      const qOk=!q||(f.engine||'').toLowerCase().includes(q)||(f.chassis||'').toLowerCase().includes(q)||pn.toLowerCase().includes(q)||(a.description||'').toLowerCase().includes(q)||(f.make||'').toLowerCase().includes(q)||(f.model||'').toLowerCase().includes(q)||(f.submodel||'').toLowerCase().includes(q)||String(f.year_from||'').includes(q)||String(f.year_to||'').includes(q);
       return mOk&&qOk;
     });
     if(!fits.length)return;
     count++;
     const msrp=a.msrp||0,np=netP(msrp,d,a.sales_price);
     const makes=[...new Set(fits.map(f=>f.make).filter(Boolean))];
+    const hasV2=fits.some(f=>f.engine||f.chassis); // show Engine/Chassis columns when the data has them
     const pnEl=a.product_url
       ?'<a class="pn-link" href="'+esc(a.product_url)+'" target="_blank">'+esc(pn)+' <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>'
       :'<span class="pn-plain">'+esc(pn)+'</span>';
@@ -717,10 +732,12 @@ function filterFit(){
         const yr=f.year_from&&f.year_to&&f.year_from!==f.year_to
           ?f.year_from+'–'+f.year_to+(f.submodel?' ('+f.submodel+')':'')
           :f.year_from?(String(f.year_from)+(f.submodel?' ('+f.submodel+')':'')):'--';
+        const _yr=hasV2?(f.year_from&&f.year_to&&f.year_from!==f.year_to?f.year_from+' - '+f.year_to:String(f.year_from||'--')):yr;
         fitRows+='<tr>'
           +'<td class="fit-make">'+esc(mk)+'</td>'
           +'<td class="fit-model">'+esc(f.model||'--')+'</td>'
-          +'<td class="fit-yr">'+esc(yr)+'</td>'
+          +'<td class="fit-yr">'+esc(_yr)+'</td>'
+          +(hasV2?'<td class="fit-yr">'+esc(f.engine||'')+'</td><td class="fit-yr">'+esc(f.chassis||'')+'</td>':'')
           +'</tr>';
       });
     });
@@ -743,7 +760,7 @@ function filterFit(){
         +'</div>'
       +'</div>'
       +'<div class="fit-card-body">'
-      +'<table class="fit-tbl"><thead><tr><th>Make</th><th>Model</th><th>Year(s)</th></tr></thead>'
+      +'<table class="fit-tbl"><thead><tr><th>Make</th><th>Model</th><th>Year(s)</th>'+(hasV2?'<th>Engine</th><th>Chassis</th>':'')+'</tr></thead>'
       +'<tbody>'+fitRows+'</tbody></table>'
       +'</div>'
       +'</div>';
@@ -764,12 +781,12 @@ function doExport(tab,fmt){
       rows.push([pnOf(a),a.description||'',msrp.toFixed(2),np.toFixed(2),sv.toFixed(2),a.ship_us||'FREE',a.ship_ca||'$25.00',a.ship_intl||'--',txt,a.pl_notes||'']);
     });name='TGK-PriceList';
   }else{
-    rows=[['SKU','Description','Make','Model','Submodel','Year From','Year To','Your Price','MSRP']];
+    rows=[['SKU','Description','Make','Model','Submodel','Engine','Chassis','Year From','Year To','Your Price','MSRP']];
     const fitMap={};G.fits.forEach(f=>{if(!fitMap[f.pn])fitMap[f.pn]=[];fitMap[f.pn].push(f);});
     G.asms.filter(isVisible).sort((a,b)=>pnOf(a).localeCompare(pnOf(b))).forEach(a=>{
       const msrp=a.msrp||0,np=netP(msrp,d,a.sales_price);
       const _fRows=[...(fitMap[a.pn]||[]),...(a.use_new_sku&&a.new_sku&&a.new_sku!==a.pn?(fitMap[a.new_sku]||[]):[])];
-      _fRows.forEach(f=>rows.push([pnOf(a),a.description||'',f.make||'',f.model||'',f.submodel||'',f.year_from||'',f.year_to||'',np.toFixed(2),msrp.toFixed(2)]));
+      _fRows.forEach(f=>rows.push([pnOf(a),a.description||'',f.make||'',f.model||'',f.submodel||'',f.engine||'',f.chassis||'',f.year_from||'',f.year_to||'',np.toFixed(2),msrp.toFixed(2)]));
     });name='TGK-FitmentGuide';
   }
   if(fmt==='csv'){
@@ -796,7 +813,7 @@ async function init(){
         apiAll('assemblies?select=pn,description,category,msrp,total_on_hand,is_subassembly,discontinued,stage,status,use_new_sku,new_sku,pl_notes,pl_active,sales_price,ship_us,ship_ca,ship_intl,product_url&discontinued=eq.false&order=pn'),
         apiAll('bom_items?select=parent_pn,child_pn,qty,item_type'),
         apiAll('parts?select=pn,total_unpckgd'),
-        apiAll('fitments?select=pn,year_from,year_to,make,model,submodel&order=pn,make,model,year_from'),
+        loadFits(),
         api('settings?key=eq.pricing_tiers&select=value&limit=1')
       ]);
       G.asms=asms;
@@ -805,7 +822,7 @@ async function init(){
       const tiers=(tiersRow[0]&&tiersRow[0].value)||[{id:'t1',name:'Standard',pct:10},{id:'t2',name:'Preferred',pct:20}];
       G.tiers=tiers;G.prospect=true;
       try{var _nhP=await api('settings?key=eq.note_highlights&select=value&limit=1');G.noteHL=(_nhP&&_nhP[0]&&_nhP[0].value)||[];}catch(e){G.noteHL=[];}
-      const visiblePns=new Set(G.asms.filter(isVisible).map(a=>a.pn));
+      const visiblePns=new Set(G.asms.filter(isVisible).flatMap(a=>[a.pn,a.new_sku].filter(Boolean))); // a renamed product's fitment is filed under its new SKU
       const visFits=fits.filter(f=>visiblePns.has(f.pn));
       document.getElementById('fit-count').textContent=visFits.length;
       const makes=[...new Set(visFits.map(f=>f.make).filter(Boolean))].sort();
@@ -827,7 +844,7 @@ async function init(){
       apiAll('assemblies?select=pn,description,category,msrp,total_on_hand,is_subassembly,discontinued,stage,status,use_new_sku,new_sku,pl_notes,pl_active,sales_price,ship_us,ship_ca,ship_intl,product_url&discontinued=eq.false&order=pn'),
       apiAll('bom_items?select=parent_pn,child_pn,qty,item_type'),
       apiAll('parts?select=pn,total_unpckgd'),
-      apiAll('fitments?select=pn,year_from,year_to,make,model,submodel&order=pn,make,model,year_from')
+      loadFits()
     ]);
     if(!dlrRows.length){showError('Link not recognised','This link is invalid or expired. Contact <a href="mailto:info@tgkmotorsport.com" style="color:var(--teal)">info@tgkmotorsport.com</a>.');return;}
     G.dealer=dlrRows[0];
@@ -837,7 +854,7 @@ async function init(){
     G.parts=parts;G.fits=fits;
     if(!isStaffPreview())logVisit(G.dealer); // non-blocking; skipped for staff's own preview clicks
     const d=safeDealer();
-    const visiblePns=new Set(G.asms.filter(isVisible).map(a=>a.pn));
+    const visiblePns=new Set(G.asms.filter(isVisible).flatMap(a=>[a.pn,a.new_sku].filter(Boolean))); // a renamed product's fitment is filed under its new SKU
     const visFits=fits.filter(f=>visiblePns.has(f.pn));
     document.getElementById('fit-count').textContent=visFits.length;
     const makes=[...new Set(visFits.map(f=>f.make).filter(Boolean))].sort();
