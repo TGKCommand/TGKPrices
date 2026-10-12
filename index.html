@@ -727,7 +727,8 @@ function filterFit(){
   let count=0,html='';
   items.forEach(a=>{
     const pn=pnOf(a);
-    const fits=[...(fitMap[a.pn]||[]),...(a.use_new_sku&&a.new_sku&&a.new_sku!==a.pn?(fitMap[a.new_sku]||[]):[])].filter(f=>{ // new SKU too (the export already did this)
+    const _seenV={};
+    const fits=[...(fitMap[a.pn]||[]),...(a.new_sku&&a.new_sku!==a.pn?(fitMap[a.new_sku]||[]):[])].filter(f=>{const k=[f.make,f.model,f.year_from,f.year_to,f.engine||'',f.chassis||''].join('|').toLowerCase();if(_seenV[k])return false;_seenV[k]=1;return true;}).filter(f=>{ // legacy + new SKU, each vehicle once
       const mOk=!make||(f.make||'').toLowerCase()===make;
       const qOk=!q||(f.engine||'').toLowerCase().includes(q)||(f.chassis||'').toLowerCase().includes(q)||pn.toLowerCase().includes(q)||(a.description||'').toLowerCase().includes(q)||(f.make||'').toLowerCase().includes(q)||(f.model||'').toLowerCase().includes(q)||(f.submodel||'').toLowerCase().includes(q)||String(f.year_from||'').includes(q)||String(f.year_to||'').includes(q);
       return mOk&&qOk;
@@ -802,7 +803,7 @@ function doExport(tab,fmt){
     const fitMap={};G.fits.forEach(f=>{if(!fitMap[f.pn])fitMap[f.pn]=[];fitMap[f.pn].push(f);});
     G.asms.filter(isVisible).sort((a,b)=>pnOf(a).localeCompare(pnOf(b))).forEach(a=>{
       const msrp=a.msrp||0,np=netP(msrp,d,a.sales_price);
-      const _fRows=[...(fitMap[a.pn]||[]),...(a.use_new_sku&&a.new_sku&&a.new_sku!==a.pn?(fitMap[a.new_sku]||[]):[])];
+      const _sv={};const _fRows=[...(fitMap[a.pn]||[]),...(a.new_sku&&a.new_sku!==a.pn?(fitMap[a.new_sku]||[]):[])].filter(f=>{const k=[f.make,f.model,f.year_from,f.year_to,f.engine||'',f.chassis||''].join('|').toLowerCase();if(_sv[k])return false;_sv[k]=1;return true;});
       _fRows.forEach(f=>rows.push([pnOf(a),a.description||'',f.make||'',f.model||'',f.submodel||'',f.engine||'',f.chassis||'',f.year_from||'',f.year_to||'',np.toFixed(2),msrp.toFixed(2)]));
     });name='TGK-FitmentGuide';
   }
