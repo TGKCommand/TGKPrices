@@ -520,7 +520,14 @@ function fitRowsFor(a){
     var oa=ord!==key?fi.asmBy[ord]:null;
     out.push(Object.assign({},f,{_opt:ord!==key,_order:ord!==key?(oa?pnOf(oa):f.variant_sku):'',_orderAsm:oa}));
   });
-  return out;
+  // Old ERP rows (often under a legacy SKU) carry no engine/chassis. When a detailed row covers the same
+  // vehicle and years, the old one adds nothing - and it would make every vehicle appear twice.
+  var det=out.filter(function(r){return r.engine||r.chassis;});
+  return out.filter(function(r){
+    if(r.engine||r.chassis)return true;
+    return !det.some(function(o){return _U(o.make)===_U(r.make)&&_U(o.model)===_U(r.model)
+      &&(+o.year_from||0)<=(+r.year_from||0)&&(+o.year_to||9999)>=(+r.year_to||0);});
+  });
 }
 function fitTotal(){return G.asms.filter(isVisible).reduce(function(n,a){return n+fitRowsFor(a).length;},0);}
 function dedupeFits(rows){
@@ -814,7 +821,7 @@ function filterFit(){
         if(hasOpt){
           if(f._opt){const oa=f._orderAsm,op=oa?netP(oa.msrp||0,d,oa.sales_price):null;
             ordCell='<td class="fit-order"><span class="fit-order-tag">'+esc(f._order)+'</span>'+(oa&&Math.abs(op-np)>0.005?' <span class="fit-order-price">'+fc(op)+'</span>':'')+'</td>';}
-          else ordCell='<td class="fit-order fit-order--same">'+esc(pn)+'</td>';
+          else ordCell='<td class="fit-order fit-order--same"></td>';
         }
         fitRows+='<tr>'
           +'<td class="fit-make">'+esc(mk)+'</td>'
@@ -836,7 +843,7 @@ function filterFit(){
             +(makes.length?'<span class="fit-makes-list">'+makes.map(m=>esc(m)).join(', ')+'</span>':'')
             +'<span class="stock-badge '+stCls+'" style="font-size:9px;padding:2px 7px">'+stTxt+'</span>'
           +'</div>'
-          +(hasOpt?'<div class="fit-opt-note">Some vehicles need a specific option &mdash; order the SKU in the <b>Order SKU</b> column.</div>':'')
+          +(hasOpt?'<div class="fit-opt-note">Most vehicles use <b>'+esc(pn)+'</b>. A vehicle with an SKU in the <b>Order SKU</b> column needs that SKU instead.</div>':'')
         +'</div>'
         +'<div class="fit-card-right">'
           +'<div class="fit-price-label">Your Price</div>'
