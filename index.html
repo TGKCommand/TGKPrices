@@ -180,6 +180,12 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
   .fit-tbl--opt td.fit-order{background:none!important;padding:0!important;border:0!important}
   .fit-uni-row{padding:10px 16px}
 }
+/* [Fitment v4] notes, conditions, engine codes */
+.fit-code{font-size:10.5px;color:var(--text3,#9ca3af);font-weight:600}
+.fit-hasnote td{border-bottom:none!important}
+.fit-noterow td{padding-top:0!important;padding-bottom:9px!important}
+.fit-note{display:inline-block;font-size:12px;color:#7c2d12;background:#fff7ed;border-radius:5px;padding:2px 8px}
+@media (max-width:640px){.fit-noterow td{display:block;padding:0 0 4px!important}.fit-tbl tr.fit-noterow{display:block;padding:0 16px 10px;border-bottom:1px solid #f0f2f5}.fit-tbl tr.fit-hasnote{border-bottom:none}}
 @media print{.fit-order-tag{border:1px solid #999;background:none}}
 @media print{
   .toolbar,.tabs,.btn-print,.hdr-right,.filt-grp,#btt{display:none!important}
@@ -459,7 +465,23 @@ let G={dealer:null,asms:[],boms:{},parts:[],fits:[]};
 let priceFilter='all';
 
 function api(p){return fetch(SB+'/rest/v1/'+p,{headers:H}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});}
+function _stableOrder(path,key){ // a unique tiebreaker so pages can never overlap or skip rows
+  var i=path.indexOf('?'),t=(i<0?path:path.slice(0,i)),q=i<0?'':path.slice(i+1),k=key||(t==='fit_products'?'handle':'id');
+  if(/(^|&)limit=/.test(q))return path;
+  var m=q.match(/(^|&)order=([^&]*)/);
+  if(m){var parts=m[2].split(',');if(parts.some(function(x){return x.split('.')[0]===k;}))return path;
+    return t+'?'+q.replace(m[0],m[1]+'order='+m[2]+','+k);}
+  return t+'?'+(q?q+'&':'')+'order='+k;
+}
 async function apiAll(p){
+  // [Fitment v4] sort pages by a unique key as the last tiebreaker (id / handle). Sorting only by fields that
+  // many rows share let the database order ties differently on each page - rows could repeat or be skipped.
+  // A table without that column falls back to the old request.
+  var sp=_stableOrder(p);
+  if(sp!==p){try{return await apiAllRaw(sp);}catch(e){if(!/ 400|column|does not exist/i.test(String(e.message||e)))throw e;}}
+  return apiAllRaw(p);
+}
+async function apiAllRaw(p){
   // Supabase/PostgREST caps a single request at its configured max-rows. That cap can be LOWER than
   // whatever page size we ask for via the Range header (this project's is 50) — so we can't assume
   // "got a full page" means "more to fetch" and "got a partial page" means "done". Instead: keep
@@ -483,9 +505,10 @@ async function apiAll(p){
 async function loadFits(){
   var cols='pn,year_from,year_to,make,model,submodel',ord='&order=pn,make,model,year_from',rows;
   G.fprods=await apiAll('fit_products?select=handle,sku,fit_type').catch(function(){return [];});
-  try{rows=await apiAll('fitments?select='+cols+',engine,chassis,handle,variant_sku'+ord);}
+  try{rows=await apiAll('fitments?select='+cols+',engine,chassis,handle,variant_sku,notes,transmission,drivetrain,engine_code'+ord);}
+  catch(e0){try{rows=await apiAll('fitments?select='+cols+',engine,chassis,handle,variant_sku,notes'+ord);}
   catch(e){try{rows=await apiAll('fitments?select='+cols+',engine,chassis,handle'+ord);}
-  catch(e2){try{rows=await apiAll('fitments?select='+cols+',engine,chassis'+ord);}catch(e3){rows=await apiAll('fitments?select='+cols+ord);}}}
+  catch(e2){try{rows=await apiAll('fitments?select='+cols+',engine,chassis'+ord);}catch(e3){rows=await apiAll('fitments?select='+cols+ord);}}}}
   return dedupeFits(rows);
 }
 // [Fitment v3] The guide follows the same rules as the Fitment tool and the website:
@@ -495,6 +518,7 @@ async function loadFits(){
 //  - legacy and new SKUs are the same part; each vehicle is listed once per option
 //  - parts set to Universal fit get their own section
 function _U(x){return String(x||'').trim().toUpperCase();}
+function condOf(f){return [f.transmission,f.drivetrain].filter(Boolean).join(', ');}
 function fitIndex(){
   if(G._fi&&G._fiN===G.fits.length&&G._fiA===G.asms.length)return G._fi;
   var canon={};G.asms.forEach(function(a){if(a.pn){canon[_U(a.pn)]=_U(a.pn);if(a.new_sku)canon[_U(a.new_sku)]=_U(a.pn);}});
@@ -516,7 +540,7 @@ function fitRowsFor(a){
   var fi=fitIndex(),key=fi.C(a.pn),seen={},out=[];
   (fi.by[key]||[]).forEach(function(f){
     var ord=f.variant_sku?fi.C(f.variant_sku):key;
-    var k=[f.make,f.model,f.year_from,f.year_to,f.engine||'',f.chassis||'',ord].join('|').toLowerCase();if(seen[k])return;seen[k]=1;
+    var k=[f.make,f.model,f.year_from,f.year_to,f.engine||'',f.chassis||'',ord,condOf(f)].join('|').toLowerCase();if(seen[k])return;seen[k]=1;
     var oa=ord!==key?fi.asmBy[ord]:null;
     out.push(Object.assign({},f,{_opt:ord!==key,_order:ord!==key?(oa?pnOf(oa):f.variant_sku):'',_orderAsm:oa}));
   });
@@ -533,7 +557,7 @@ function fitTotal(){return G.asms.filter(isVisible).reduce(function(n,a){return 
 function dedupeFits(rows){
   var seen={};
   return (rows||[]).filter(function(f){
-    var k=[f.pn,f.make,f.model,f.year_from,f.year_to,f.engine||'',f.chassis||'',(f.engine||f.chassis)?'':(f.submodel||'')].join('|').toLowerCase();
+    var k=[f.pn,f.make,f.model,f.year_from,f.year_to,f.engine||'',f.chassis||'',(f.engine||f.chassis)?'':(f.submodel||''),f.variant_sku||'',f.transmission||'',f.drivetrain||''].join('|').toLowerCase(); // a DSG row and a Manual row are different fitment
     if(seen[k])return false;seen[k]=1;return true;
   });
 }
@@ -792,7 +816,7 @@ function filterFit(){
     const all=fitRowsFor(a);
     const fits=all.filter(f=>{
       const mOk=!make||(f.make||'').toLowerCase()===make;
-      const qOk=!q||[f.engine,f.chassis,pn,a.description,f.make,f.model,f.submodel,f._order,String(f.year_from||''),String(f.year_to||'')].some(x=>String(x||'').toLowerCase().includes(q))
+      const qOk=!q||[f.engine,f.chassis,pn,a.description,f.make,f.model,f.submodel,f._order,f.notes,f.engine_code,condOf(f),String(f.year_from||''),String(f.year_to||'')].some(x=>String(x||'').toLowerCase().includes(q))
         ||(f.year_from&&f.year_to&&/^\d{4}$/.test(q)&&+q>=f.year_from&&+q<=f.year_to);
       return mOk&&qOk;
     });
@@ -823,13 +847,14 @@ function filterFit(){
             ordCell='<td class="fit-order"><span class="fit-order-tag">'+esc(f._order)+'</span>'+(oa&&Math.abs(op-np)>0.005?' <span class="fit-order-price">'+fc(op)+'</span>':'')+'</td>';}
           else ordCell='<td class="fit-order fit-order--same"></td>';
         }
-        fitRows+='<tr>'
+        const cn=[condOf(f),f.notes].filter(Boolean).join(' - ');
+        fitRows+='<tr'+(cn?' class="fit-hasnote"':'')+'>'
           +'<td class="fit-make">'+esc(mk)+'</td>'
           +'<td class="fit-model">'+esc(f.model||'--')+'</td>'
           +'<td class="fit-yr">'+esc(yr)+'</td>'
-          +(hasV2?'<td class="fit-yr">'+esc(f.engine||'')+'</td><td class="fit-yr">'+esc(f.chassis||'')+'</td>':'')
+          +(hasV2?'<td class="fit-yr">'+esc(f.engine||'')+(f.engine_code?' <span class="fit-code">'+esc(f.engine_code)+'</span>':'')+'</td><td class="fit-yr">'+esc(f.chassis||'')+'</td>':'')
           +ordCell
-          +'</tr>';
+          +'</tr>'+(cn?'<tr class="fit-noterow"><td colspan="'+(3+(hasV2?2:0)+(hasOpt?1:0))+'"><span class="fit-note">'+esc(cn)+'</span></td></tr>':'');
       });
     });
     const {cls:stCls,txt:stTxt}=stockOf(a);
@@ -874,13 +899,13 @@ function doExport(tab,fmt){
       rows.push([pnOf(a),a.description||'',msrp.toFixed(2),np.toFixed(2),sv.toFixed(2),a.ship_us||'FREE',a.ship_ca||'$25.00',a.ship_intl||'--',txt,a.pl_notes||'']);
     });name='TGK-PriceList';
   }else{
-    rows=[['SKU','Description','Make','Model','Submodel','Engine','Chassis','Year From','Year To','Order SKU','Your Price','MSRP']];
+    rows=[['SKU','Description','Make','Model','Submodel','Engine','Engine Code','Chassis','Transmission','Drive','Year From','Year To','Order SKU','Notes','Your Price','MSRP']];
     const fi=fitIndex();
     G.asms.filter(isVisible).sort((a,b)=>pnOf(a).localeCompare(pnOf(b))).forEach(a=>{
       const msrp=a.msrp||0,np=netP(msrp,d,a.sales_price);
       const _all=fitRowsFor(a);
-      if(!_all.length&&fi.uni[fi.C(a.pn)]){rows.push([pnOf(a),a.description||'','Universal fit','All vehicles','','','','','',pnOf(a),np.toFixed(2),msrp.toFixed(2)]);return;}
-      _all.forEach(f=>{const oa=f._orderAsm,op=oa?netP(oa.msrp||0,d,oa.sales_price):np;rows.push([pnOf(a),a.description||'',f.make||'',f.model||'',f.submodel||'',f.engine||'',f.chassis||'',f.year_from||'',f.year_to||'',f._opt?f._order:pnOf(a),op.toFixed(2),(oa?(oa.msrp||0):msrp).toFixed(2)]);});
+      if(!_all.length&&fi.uni[fi.C(a.pn)]){rows.push([pnOf(a),a.description||'','Universal fit','All vehicles','','','','','','','','',pnOf(a),'',np.toFixed(2),msrp.toFixed(2)]);return;}
+      _all.forEach(f=>{const oa=f._orderAsm,op=oa?netP(oa.msrp||0,d,oa.sales_price):np;rows.push([pnOf(a),a.description||'',f.make||'',f.model||'',f.submodel||'',f.engine||'',f.engine_code||'',f.chassis||'',f.transmission||'',f.drivetrain||'',f.year_from||'',f.year_to||'',f._opt?f._order:pnOf(a),f.notes||'',op.toFixed(2),(oa?(oa.msrp||0):msrp).toFixed(2)]);});
       return;
     });name='TGK-FitmentGuide';
   }
