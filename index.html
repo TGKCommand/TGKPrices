@@ -394,7 +394,7 @@ th{border-bottom:2px solid var(--border);background:#fafbfc}
         <svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input class="search" type="text" id="q-fit" placeholder="Search part # or vehicle&hellip;" oninput="filterFit()">
       </div>
-      <select class="make-sel" id="make-sel" onchange="filterFit()"><option value="">All Makes</option></select>
+      <select class="make-sel" id="make-sel" onchange="fillModels();filterFit()"><option value="">All Makes</option></select><select class="make-sel" id="model-sel" onchange="filterFit()" disabled><option value="">All Models</option></select><input class="make-sel" id="year-sel" type="number" inputmode="numeric" placeholder="Year" min="1950" max="2100" oninput="filterFit()" style="width:96px">
       <span class="part-count" id="fit-part-count"></span>
       <button class="btn" onclick="doExport('fit','csv')">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -517,6 +517,14 @@ async function loadFits(){
 //    "Order SKU" column says which child SKU to order (a child that is its own price-list item keeps its card)
 //  - legacy and new SKUs are the same part; each vehicle is listed once per option
 //  - parts set to Universal fit get their own section
+// Dealer guide by vehicle: Make -> Model -> Year narrows every card to the parts that fit that car
+function fillModels(){
+  var mk=(document.getElementById('make-sel').value||'').toLowerCase(),sel=document.getElementById('model-sel'),cur=sel.value,m={};
+  (G.fits||[]).forEach(function(f){if(mk&&(f.make||'').toLowerCase()===mk&&f.model)m[f.model]=1;});
+  var list=Object.keys(m).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true});});
+  sel.innerHTML='<option value="">All Models</option>'+list.map(function(x){return '<option'+(x===cur?' selected':'')+'>'+esc(x)+'</option>';}).join('');
+  sel.disabled=!mk;if(!mk)sel.value='';
+}
 function _U(x){return String(x||'').trim().toUpperCase();}
 function condOf(f){return [f.transmission,f.drivetrain].filter(Boolean).join(', ');}
 function fitIndex(){
@@ -805,6 +813,8 @@ function renderPrice(){
 function filterFit(){
   const q=(document.getElementById('q-fit').value||'').toLowerCase().trim();
   const make=(document.getElementById('make-sel').value||'').toLowerCase();
+  const model=(document.getElementById('model-sel').value||'').toLowerCase(),yr=parseInt(document.getElementById('year-sel').value,10);
+  const byVeh=!!(model||(yr>1949&&yr<2101));
   const d=safeDealer(),fi=fitIndex();
   const items=G.asms.filter(isVisible).filter(catAllows).sort((a,b)=>pnOf(a).localeCompare(pnOf(b)));
   let count=0,html='',uniHtml='',uniN=0;
@@ -815,7 +825,7 @@ function filterFit(){
     const pn=pnOf(a),key=fi.C(a.pn);
     const all=fitRowsFor(a);
     const fits=all.filter(f=>{
-      const mOk=!make||(f.make||'').toLowerCase()===make;
+      const mOk=(!make||(f.make||'').toLowerCase()===make)&&(!model||(f.model||'').toLowerCase()===model)&&(!(yr>1949&&yr<2101)||(f.year_from<=yr&&yr<=f.year_to));
       const qOk=!q||[f.engine,f.chassis,pn,a.description,f.make,f.model,f.submodel,f._order,f.notes,f.engine_code,condOf(f),String(f.year_from||''),String(f.year_to||'')].some(x=>String(x||'').toLowerCase().includes(q))
         ||(f.year_from&&f.year_to&&/^\d{4}$/.test(q)&&+q>=f.year_from&&+q<=f.year_to);
       return mOk&&qOk;
@@ -823,7 +833,7 @@ function filterFit(){
     const msrp=a.msrp||0,np=netP(msrp,d,a.sales_price);
     const supersededNote=(a.use_new_sku&&a.new_sku&&a.pn&&a.pn!==pn)?'<div style="font-size:9px;color:#9ca3af;margin-top:1px">Superseded: '+esc(a.pn)+'</div>':'';
     if(!all.length&&fi.uni[key]){ // Universal fit
-      if(make||(q&&!(pn.toLowerCase().includes(q)||(a.description||'').toLowerCase().includes(q))))return;
+      if(make||byVeh||(q&&!(pn.toLowerCase().includes(q)||(a.description||'').toLowerCase().includes(q))))return;
       uniN++;
       uniHtml+='<div class="fit-uni-row"><div><div class="fit-card-pn">'+pnLink(a,pn)+supersededNote+'</div><div class="fit-card-desc">'+esc(a.description||'')+'</div></div><div class="fit-uni-price"><b>'+fc(np)+'</b><span>MSRP '+fc(msrp)+'</span></div></div>';
       return;
